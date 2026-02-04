@@ -25,21 +25,21 @@ create by Sikorsky VI
 
 enum confInterrupt
 {
-    non = 0x00,             // without interruptions
-    receiveRBNE = 0x01,     // reception interruption
+    non             = 0x00, // without interruptions
+    receiveRBNE     = 0x01, // reception interruption
     transmissionTBE = 0x02, // transmitter buffer empty interrupt
     transmissionTC  = 0x03, // ransmission complete interrupt
 };
 enum confInterruptDMAReciev
 {    
-    non_IRQn_Rx = 0x00,     // without interruptions
+    non_IRQn_Rx     = 0x00, // without interruptions
     reciev_UartIRQn = 0x80, // reception interruption thith usart
-    reciev_DmaIRQn  = 0x01  //  reception interruption thith dma 
+    reciev_DmaIRQn  = 0x01  // reception interruption thith dma 
 };
 enum confInterruptDMATransmit
 {    
-    non_IRQn_Tx = 0x00,     // without interruptions
-    transmit_DmaIRQn = 0x01 //  reception interruption thith dma 
+    non_IRQn_Tx      = 0x00,// without interruptions
+    transmit_DmaIRQn = 0x01 // reception interruption thith dma 
 };
 
 #ifdef GD32F303_
@@ -59,16 +59,16 @@ enum usartDMA
     \param[in]  baudrate: USART0 <=5000000 USARTx(x=1,2)/UARTx(x=3,4) <=~2500000
     \param[in]  msbf: LSB/MSB
                 only one parameter can be selected which is shown as below:
-      \arg        USART_MSBF_LSB: LSB first
-      \arg        USART_MSBF_MSB: MSB first           
+      \arg       USART_MSBF_LSB: LSB first
+      \arg       USART_MSBF_MSB: MSB first           
     \param[in]  configIrqn: bitmask from using an interrupt    (enum confInterrupt)
                 only one parameter can be selected which is shown as below:
-      \arg      non             - without interruptions
-      \arg      recievRBNE          - reception interruption
-      \arg      transmissionTBE - transmitter buffer empty interrupt
-      \arg      transmissionTC  - ransmission complete interrupt
-      \param[in]  priority:     using an interrupt
-      \param[in]  sub_priority: using an interrupt
+      \arg       non             - without interruptions
+      \arg       recievRBNE      - reception interruption
+      \arg       transmissionTBE - transmitter buffer empty interrupt
+      \arg       transmissionTC  - ransmission complete interrupt
+    \param[in]  priority:     using an interrupt
+    \param[in]  sub_priority: using an interrupt
     \param[out] none
     \retval     none
 */
@@ -83,7 +83,7 @@ void ConfigUsart (uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t conf
     \param[in]  circulationEnable: 1/0
     \param[in]  channelPriorityDMA:
                 only one parameter can be selected which is shown as below:
-      \arg        DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
+      \arg       DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptTransmit)
@@ -103,7 +103,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     \param[in]  circulationEnable: 1/0
     \param[in]  channelPriorityDMA:
                 only one parameter can be selected which is shown as below:
-      \arg        DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
+      \arg       DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptReciev)
@@ -144,37 +144,23 @@ void DMA1_Channel2_IRQHandler   (void);//UART3  RX
     \param[in]  baudrate:         
     \param[in]  msbf: LSB/MSB
                 only one parameter can be selected which is shown as below:
-      \arg        USART_MSBF_LSB: LSB first
-      \arg        USART_MSBF_MSB: MSB first           
+      \arg       USART_MSBF_LSB: LSB first
+      \arg       USART_MSBF_MSB: MSB first           
     \param[in]  configIrqn: bitmask from using an interrupt    (enum confInterrupt)
                 only one parameter can be selected which is shown as below:
-      \arg      non             - without interruptions
-      \arg      reciev          - reception interruption
-      \arg      transmissionTBE - transmitter buffer empty interrupt
-      \arg      transmissionTC  - ransmission complete interrupt
-      \arg      recievOnDMA     - reception interruption thith dma (only USARTx(x=0,1)/UART3)
-      \param[in]  priority:     using an interrupt
-      \param[in]  sub_priority: using an interrupt
+      \arg       non             - without interruptions
+      \arg       reciev          - reception interruption
+      \arg       transmissionTBE - transmitter buffer empty interrupt
+      \arg       transmissionTC  - ransmission complete interrupt
+      \arg       recievOnDMA     - reception interruption thith dma (only USARTx(x=0,1)/UART3)
+    \param[in]  priority:     using an interrupt
+    \param[in]  sub_priority: using an interrupt
     \param[out] none
     \retval     none
     
     \example: ConfigUsart(USART0,5000000,receive,0,4);
 */
 void ConfigUsart(uint32_t usart, uint8_t oversample, uint32_t baudrate, uint32_t msbf, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority);
-/*!
- \arg when using dma, you first call ConfigUsart, then ConfigDmaFromRecievUsart
-    \brief      enable DMAx from USARTx(x=0,1)/UART3  reciev interrupts
-    \param[in]  usart: usart_periph
-    \param[in]  buf: buffer for received data
-    \param[in]  lenBuf: size buffer
-    \param[in]  channelPriorityDMA:
-                only one parameter can be selected which is shown as below:
-      \arg        DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
-    \param[in]  circulationEnable: 1/0
-    \param[out] none
-    \retval     none
-*/
-
 /*!
  \arg when using dma, you first call ConfigUsart, then ConfigUsartDMA_Tx
     \brief      enable DMAx
@@ -184,7 +170,7 @@ void ConfigUsart(uint32_t usart, uint8_t oversample, uint32_t baudrate, uint32_t
     \param[in]  circulationEnable: 1/0
     \param[in]  channelPriorityDMA:
                 only one parameter can be selected which is shown as below:
-      \arg        DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
+      \arg       DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptTransmit)
