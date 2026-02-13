@@ -103,6 +103,7 @@ void ConfigUsart (uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t conf
         
         nvic_irq_enable( usartX_irqn, priority, sub_priority); 
     }
+       usart_enable       (usart);
 
 
 }
@@ -128,6 +129,7 @@ void ConfigUsart (uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t conf
 void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bool circulationEnable, 
                               uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMATransmit iRQn)
 {
+       usart_disable       (usart);
     dma_channel_enum channel = 0;
     uint32_t dma_periph = 0;
     uint8_t  TX_irqn = 0;
@@ -159,7 +161,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     }
     
 
-    //Настройка приёма данных по USART0
+    //ГЌГ Г±ГІГ°Г®Г©ГЄГ  ГЇГ°ГЁВёГ¬Г  Г¤Г Г­Г­Г»Гµ ГЇГ® USART0
     // USART0 DMA receiving configuration
     dma_parameter_struct dma_init_struct;
     dma_deinit                  ( dma_periph, channel);
@@ -185,7 +187,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     
     usart_dma_transmit_config   ( usart, USART_DENT_ENABLE);
   if (iRQn == transmit_DmaIRQn) {
-    dma_interrupt_enable        ( dma_periph, channel, DMA_INT_FTF); // Прерывание по полной передаче
+    dma_interrupt_enable        ( dma_periph, channel, DMA_INT_FTF); // ГЏГ°ГҐГ°Г»ГўГ Г­ГЁГҐ ГЇГ® ГЇГ®Г«Г­Г®Г© ГЇГҐГ°ГҐГ¤Г Г·ГҐ
     dma_interrupt_flag_clear    ( dma_periph, channel, DMA_INT_FLAG_FTF );
        switch (usart)
        {
@@ -211,13 +213,12 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
         }
        }
   }  
-     usart_enable       (usart);
      dma_channel_enable (dma_periph, channel);
        
   if (iRQn != non_IRQn_Tx) {
     nvic_irq_enable    (TX_irqn, priority, sub_priority);            
   }
-
+     usart_enable       (usart);
 }
 
 
@@ -245,6 +246,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
 void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bool circulationEnable, 
                               uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMAReciev   iRQn)
 {
+       usart_disable       (usart);
     dma_channel_enum channel = 0;
     uint32_t dma_periph = 0;
     uint8_t RX_irqn = 0;
@@ -328,7 +330,7 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
        }
     }
     if (reciev_DmaIRQn & iRQn) {
-      dma_interrupt_enable      (dma_periph, channel, DMA_INT_FTF); // Прерывание по полной передаче
+      dma_interrupt_enable      (dma_periph, channel, DMA_INT_FTF); // ГЏГ°ГҐГ°Г»ГўГ Г­ГЁГҐ ГЇГ® ГЇГ®Г«Г­Г®Г© ГЇГҐГ°ГҐГ¤Г Г·ГҐ
       dma_interrupt_flag_clear  (dma_periph, channel, DMA_INT_FLAG_FTF );
        switch (usart)
        {
@@ -354,11 +356,11 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
         }
        }
     }
-       usart_enable       (usart);
        dma_channel_enable (dma_periph, channel);
     if (non_IRQn_Rx != iRQn) {
       nvic_irq_enable    (RX_irqn, priority, sub_priority);
     }
+       usart_enable       (usart);
 }
 
 
@@ -547,8 +549,6 @@ void ConfigUsart(uint32_t usart, uint8_t oversample, uint32_t baudrate, uint32_t
         usart_interrupt_flag_clear(usart, USART_INT_FLAG_TC);
     }
 
-    usart_enable(usart);
-
     if (configIrqn != non) {
         uint8_t usartX_irqn = 0;
         switch (usart)
@@ -601,6 +601,7 @@ void ConfigUsart(uint32_t usart, uint8_t oversample, uint32_t baudrate, uint32_t
         }
         nvic_irq_enable(usartX_irqn, priority, sub_priority);
     }
+       usart_enable       (usart);
 }
 /*!
  \arg when using dma, you first call ConfigUsart, then ConfigUsartDMA_Tx
@@ -623,6 +624,7 @@ void ConfigUsart(uint32_t usart, uint8_t oversample, uint32_t baudrate, uint32_t
 void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circulationEnable, 
                        uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMATransmit iRQn)
 {
+       usart_disable       (usart);
     dma_channel_enum channelTx = 0;
     uint32_t dma_periph = 0;
     uint32_t dma_sub_periph = 0;
@@ -771,8 +773,7 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     if (non_IRQn_Tx != iRQn) {
       nvic_irq_enable               (TX_irqn, priority, sub_priority);
     }
-   
-   
+     usart_enable       (usart);
 }
 /*!
  \arg when using dma, you first call ConfigUsart, then ConfigUsartDMA_Rx
@@ -796,6 +797,7 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
 void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circulationEnable, 
                        uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMAReciev   iRQn)
 {
+       usart_disable       (usart);
     dma_channel_enum channelRx= 0;
     uint32_t dma_periph       = 0;
     uint32_t dma_sub_periph   = 0;
@@ -997,6 +999,7 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     if (non_IRQn_Rx != iRQn) {
         nvic_irq_enable             (RX_irqn, priority, sub_priority);
     }
+       usart_enable       (usart);
 }
 /*
 void USART0_IRQHandler(void)
