@@ -12,11 +12,11 @@
 
     \brief      config USARTx
     \param[in]  usart_periph: USARTx(x=0,1,2)/UARTx(x=3,4)
-    \param[in]  baudrate: USART0 <=5000000 USARTx(x=1,2)/UARTx(x=3,4) <=~2500000            
+    \param[in]  baudrate: USART0 <=5000000 USARTx(x=1,2)/UARTx(x=3,4) <=~2500000
     \param[in]  msbf: LSB/MSB
                 only one parameter can be selected which is shown as below:
       \arg       USART_MSBF_LSB: LSB first
-      \arg       USART_MSBF_MSB: MSB first           
+      \arg       USART_MSBF_MSB: MSB first
     \param[in]  configIrqn: bitmask from using an interrupt    (enum confInterrupt)
                 only one parameter can be selected which is shown as below:
       \arg       non             - without interruptions
@@ -28,28 +28,28 @@
     \param[out] none
     \retval     none
 */
-void ConfigUsart (uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority)
+void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority)
 {
-//    if ((reciev & 0x01 == 0x01) && (recievOnDMA & 0x04 == 0x04)) {
-//      #error "You cannot select 2 reception parameters"
-//    }
-    
+    //    if ((reciev & 0x01 == 0x01) && (recievOnDMA & 0x04 == 0x04)) {
+    //      #error "You cannot select 2 reception parameters"
+    //    }
+
     usart_deinit(usart);
-  
+
     usart_word_length_set(usart, USART_WL_8BIT);
-    usart_baudrate_set(usart, baudrate);  
+    usart_baudrate_set(usart, baudrate);
     usart_data_first_config(usart, msbf);
-  
+
     usart_stop_bit_set(usart, USART_STB_1BIT);
     usart_parity_config(usart, USART_PM_NONE);
 
     usart_hardware_flow_rts_config(usart, USART_RTS_DISABLE);
     usart_hardware_flow_cts_config(usart, USART_CTS_DISABLE);
 
-    usart_receive_config (usart, USART_RECEIVE_ENABLE);
+    usart_receive_config(usart, USART_RECEIVE_ENABLE);
     usart_transmit_config(usart, USART_TRANSMIT_ENABLE);
 
-    if (receiveRBNE     & configIrqn) {
+    if (receiveRBNE & configIrqn) {
         usart_interrupt_enable(usart, USART_INT_RBNE);
         usart_interrupt_flag_clear(usart, USART_INT_FLAG_RBNE);
     }
@@ -57,11 +57,11 @@ void ConfigUsart (uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t conf
         usart_interrupt_enable(usart, USART_INT_TBE);
         usart_interrupt_flag_clear(usart, USART_INT_FLAG_TBE);
     }
-    if (transmissionTC  & configIrqn) {
+    if (transmissionTC & configIrqn) {
         usart_interrupt_enable(usart, USART_INT_TC);
         usart_interrupt_flag_clear(usart, USART_INT_FLAG_TC);
     }
-    
+
 
     usart_enable(usart);
 
@@ -96,12 +96,12 @@ void ConfigUsart (uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t conf
         }
         default:
         {
-//#error Error parametr USART
+            //#error Error parametr USART
             break;
         }
         }
-        
-        nvic_irq_enable( usartX_irqn, priority, sub_priority); 
+
+        nvic_irq_enable(usartX_irqn, priority, sub_priority);
     }
 
 
@@ -125,83 +125,90 @@ void ConfigUsart (uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t conf
     \param[out] none
     \retval     none
 */
-void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bool circulationEnable, 
-                              uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMATransmit iRQn)
+void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bool circulationEnable,
+    uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMATransmit iRQn)
 {
     dma_channel_enum channel = 0;
     uint32_t dma_periph = 0;
     uint8_t  TX_irqn = 0;
-    switch(usart)
+    switch (usart)
     {
-        case USART0:
-        {
-            dma_periph = DMA0;
-            channel   = DMA_CH3;
-            break;
-        }
-        case USART1:
-        {
-            dma_periph = DMA0;
-            channel   = DMA_CH6;
-            break;
-        }
-        case UART3:
-        {
-            dma_periph = DMA1;
-            channel   = DMA_CH4;
-            break;
-        }
-        default:
-        {
-            //#error there is no DMA on this USART
-            break;
-        }
+    case USART0:
+    {
+        dma_periph = DMA0;
+        channel = DMA_CH3;
+        break;
     }
-    
+    case USART1:
+    {
+        dma_periph = DMA0;
+        channel = DMA_CH6;
+        break;
+    }
+    case UART3:
+    {
+        dma_periph = DMA1;
+        channel = DMA_CH4;
+        break;
+    }
+    default:
+    {
+        //#error there is no DMA on this USART
+        break;
+    }
+    }
+
 
     //Настройка приёма данных по USART0
     // USART0 DMA receiving configuration
     dma_parameter_struct dma_init_struct;
-    dma_deinit                  ( dma_periph, channel);
-    dma_init_struct.direction   = DMA_PERIPHERAL_TO_MEMORY;		// Peripheral to memory
+    dma_deinit(dma_periph, channel);
+    dma_init_struct.direction = DMA_PERIPHERAL_TO_MEMORY;		// Peripheral to memory
     dma_init_struct.memory_addr = buf;			                // Set the memory receiving base address
-    dma_init_struct.memory_inc  = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing
-    dma_init_struct.memory_width= DMA_MEMORY_WIDTH_8BIT;		// 8 -bit memory data
-    dma_init_struct.number      = lenBuf;
+    dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing
+    dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;		// 8 -bit memory data
+    dma_init_struct.number = lenBuf;
 
     dma_init_struct.periph_addr = USARTn_DATA_ADDRESS(usart);	// Peripheral address, USART data register address
-    dma_init_struct.periph_inc  = DMA_PERIPH_INCREASE_DISABLE;	// The peripheral address does not increase
-    dma_init_struct.periph_width= DMA_PERIPHERAL_WIDTH_8BIT;	// 8 -bit external data
-    dma_init_struct.priority    = channelPriorityDMA;			// The highest DMA channel priority
-    dma_init                    ( dma_periph, channel, &dma_init_struct); 			// Initialize DMA according to the configuration of the structure
+    dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;	// The peripheral address does not increase
+    dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;	// 8 -bit external data
+    dma_init_struct.priority = channelPriorityDMA;			// The highest DMA channel priority
+    dma_init(dma_periph, channel, &dma_init_struct); 			// Initialize DMA according to the configuration of the structure
 
     if (circulationEnable) {
-        dma_circulation_enable  ( dma_periph, channel);
-    }else{
-        dma_circulation_disable ( dma_periph, channel);
+        dma_circulation_enable(dma_periph, channel);
     }
-    
-    dma_memory_to_memory_disable( dma_periph, channel);	        // DMA memory to the memory mode is not turned on
-    
-    usart_dma_transmit_config   ( usart, USART_DENT_ENABLE);
-  if (iRQn == transmit_DmaIRQn) {
-    dma_interrupt_enable        ( dma_periph, channel, DMA_INT_FTF); // Прерывание по полной передаче
-    dma_interrupt_flag_clear    ( dma_periph, channel, DMA_INT_FLAG_FTF );
-       switch (usart)
-       {
+    else {
+        dma_circulation_disable(dma_periph, channel);
+    }
+
+    dma_memory_to_memory_disable(dma_periph, channel);	        // DMA memory to the memory mode is not turned on
+
+    usart_dma_transmit_config(usart, USART_DENT_ENABLE);
+    if (iRQn != non_IRQn_Tx) {
+        if (iRQn & full_transmit_DmaIRQn) {
+            dma_interrupt_enable(dma_periph, channelTx, DMA_INT_FTF);
+            dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_FTF);
+        }
+        if (iRQn & half_transmit_DmaIRQn) {
+            dma_interrupt_enable(dma_periph, channelTx, DMA_INT_HTF);
+            dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_HTF);
+        }
+        switch (usart)
+        {
         case USART0:
         {
-             TX_irqn = DMA0_Channel3_IRQn;
+            TX_irqn = DMA0_Channel3_IRQn;
             break;
         }
         case USART1:
         {
-             TX_irqn = DMA0_Channel6_IRQn;
+            TX_irqn = DMA0_Channel6_IRQn;
             break;
         }
         case UART3:
         {
-             TX_irqn = DMA1_Channel3_Channel4_IRQn;
+            TX_irqn = DMA1_Channel3_Channel4_IRQn;
             break;
         }
         default:
@@ -209,14 +216,14 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
             //#error there is no DMAn on this USART
             break;
         }
-       }
-  }  
-     usart_enable       (usart);
-     dma_channel_enable (dma_periph, channel);
-       
-  if (iRQn != non_IRQn_Tx) {
-    nvic_irq_enable    (TX_irqn, priority, sub_priority);            
-  }
+        }
+    }
+    usart_enable(usart);
+    dma_channel_enable(dma_periph, channel);
+
+    if (iRQn != non_IRQn_Tx) {
+        nvic_irq_enable(TX_irqn, priority, sub_priority);
+    }
 
 }
 
@@ -242,82 +249,83 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     \param[out] none
     \retval     none
 */
-void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bool circulationEnable, 
-                              uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMAReciev   iRQn)
+void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bool circulationEnable,
+    uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMAReciev   iRQn)
 {
     dma_channel_enum channel = 0;
     uint32_t dma_periph = 0;
     uint8_t RX_irqn = 0;
-    switch(usart)
+    switch (usart)
     {
-        case USART0:
-        {
-            dma_periph = DMA0;
-            channel    = DMA_CH4;
-            break;
-        }
-        case USART1:
-        {
-            dma_periph = DMA0;
-            channel    = DMA_CH5;
-            break;
-        }
-        case UART3:
-        {
-            dma_periph = DMA1;
-            channel    = DMA_CH2;
-            break;
-        }
-        default:
-        {
-            //#error there is no DMA on this USART
-            break;
-        }
+    case USART0:
+    {
+        dma_periph = DMA0;
+        channel = DMA_CH4;
+        break;
+    }
+    case USART1:
+    {
+        dma_periph = DMA0;
+        channel = DMA_CH5;
+        break;
+    }
+    case UART3:
+    {
+        dma_periph = DMA1;
+        channel = DMA_CH2;
+        break;
+    }
+    default:
+    {
+        //#error there is no DMA on this USART
+        break;
+    }
     }
     dma_parameter_struct dma_init_struct;
-    dma_deinit                  ( dma_periph, channel );
-    dma_init_struct.direction   = DMA_PERIPHERAL_TO_MEMORY;		// Peripheral to memory
+    dma_deinit(dma_periph, channel);
+    dma_init_struct.direction = DMA_PERIPHERAL_TO_MEMORY;		// Peripheral to memory
     dma_init_struct.memory_addr = buf;			                // Set the memory receiving base address
-    dma_init_struct.memory_inc  = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing
-    dma_init_struct.memory_width= DMA_MEMORY_WIDTH_8BIT;		// 8 -bit memory data
-    dma_init_struct.number      = lenBuf;
+    dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing
+    dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;		// 8 -bit memory data
+    dma_init_struct.number = lenBuf;
 
     dma_init_struct.periph_addr = USARTn_DATA_ADDRESS(usart);	// Peripheral address, USART data register address
-    dma_init_struct.periph_inc  = DMA_PERIPH_INCREASE_DISABLE;	// The peripheral address does not increase
-    dma_init_struct.periph_width= DMA_PERIPHERAL_WIDTH_8BIT;	// 8 -bit external data
+    dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;	// The peripheral address does not increase
+    dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;	// 8 -bit external data
 
-    dma_init_struct.priority    = channelPriorityDMA;			// The highest DMA channel priority
+    dma_init_struct.priority = channelPriorityDMA;			// The highest DMA channel priority
     dma_init(dma_periph, channel, &dma_init_struct); 			// Initialize DMA according to the configuration of the structure
 
     if (circulationEnable) {
-        dma_circulation_enable  ( dma_periph, channel );
-    }else{
-        dma_circulation_disable ( dma_periph, channel );
+        dma_circulation_enable(dma_periph, channel);
     }
-    
-    dma_memory_to_memory_disable( dma_periph, channel );	        // DMA memory to the memory mode is not turned on
-    
-    usart_dma_receive_config    ( usart, USART_DENR_ENABLE );
+    else {
+        dma_circulation_disable(dma_periph, channel);
+    }
+
+    dma_memory_to_memory_disable(dma_periph, channel);	        // DMA memory to the memory mode is not turned on
+
+    usart_dma_receive_config(usart, USART_DENR_ENABLE);
 
 
     if (reciev_UartIRQn & iRQn) {
-      usart_interrupt_enable(usart, USART_INT_IDLE);
-      usart_interrupt_flag_clear(usart, USART_INT_FLAG_IDLE);
-       switch (usart)
-       {
+        usart_interrupt_enable(usart, USART_INT_IDLE);
+        usart_interrupt_flag_clear(usart, USART_INT_FLAG_IDLE);
+        switch (usart)
+        {
         case USART0:
         {
-             RX_irqn = USART1_IRQn;
+            RX_irqn = USART1_IRQn;
             break;
         }
         case USART1:
         {
-             RX_irqn = USART1_IRQn;
+            RX_irqn = USART1_IRQn;
             break;
         }
         case UART3:
         {
-             RX_irqn = UART3_IRQn;
+            RX_irqn = UART3_IRQn;
             break;
         }
         default:
@@ -325,26 +333,25 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
             //#error there is no DMAn on this USART
             break;
         }
-       }
+        }
     }
-    if (reciev_DmaIRQn & iRQn) {
-      dma_interrupt_enable      (dma_periph, channel, DMA_INT_FTF); // Прерывание по полной передаче
-      dma_interrupt_flag_clear  (dma_periph, channel, DMA_INT_FLAG_FTF );
-       switch (usart)
-       {
+    if (iRQn != reciev_UartIRQn && iRQn != non_IRQn_Rx) {
+
+        switch (usart)
+        {
         case USART0:
         {
-             RX_irqn = DMA0_Channel4_IRQn;
+            RX_irqn = DMA0_Channel4_IRQn;
             break;
         }
         case USART1:
         {
-             RX_irqn = DMA0_Channel5_IRQn;
+            RX_irqn = DMA0_Channel5_IRQn;
             break;
         }
         case UART3:
         {
-             RX_irqn = DMA1_Channel2_IRQn;
+            RX_irqn = DMA1_Channel2_IRQn;
             break;
         }
         default:
@@ -352,12 +359,20 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
             //#error there is no DMAn on this USART
             break;
         }
-       }
+        }
+        if (iRQn & full_reciev_DmaIRQn) {
+            dma_interrupt_enable(dma_periph, channelRx, DMA_INT_FTF);
+            dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_FTF);
+        }
+        if (iRQn & half_reciev_DmaIRQn) {
+            dma_interrupt_enable(dma_periph, channelRx, DMA_INT_HTF);
+            dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_HTF);
+        }
     }
-       usart_enable       (usart);
-       dma_channel_enable (dma_periph, channel);
+    usart_enable(usart);
+    dma_channel_enable(dma_periph, channel);
     if (non_IRQn_Rx != iRQn) {
-      nvic_irq_enable    (RX_irqn, priority, sub_priority);
+        nvic_irq_enable(RX_irqn, priority, sub_priority);
     }
 }
 
@@ -444,14 +459,14 @@ void UART4_IRQHandler(void)
 
     \brief      config USARTx/UARTx
     \param[in]  usart: USARTx/UARTx
-    \param[in]  oversample: 
+    \param[in]  oversample:
       \arg       USART_OVSMOD_8
       \arg       USART_OVSMOD_16
-    \param[in]  baudrate:         
+    \param[in]  baudrate:
     \param[in]  msbf: LSB/MSB
                 only one parameter can be selected which is shown as below:
       \arg       USART_MSBF_LSB: LSB first
-      \arg       USART_MSBF_MSB: MSB first           
+      \arg       USART_MSBF_MSB: MSB first
     \param[in]  configIrqn: bitmask from using an interrupt    (enum confInterrupt)
                 only one parameter can be selected which is shown as below:
       \arg       non             - without interruptions
@@ -463,75 +478,75 @@ void UART4_IRQHandler(void)
     \param[out] none
     \retval     none
 */
-void ConfigUsart(uint32_t usart, uint8_t oversample, uint32_t baudrate, uint32_t msbf, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority)
+void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t oversample, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority)
 {
 
     //    if ((receive & 0x01 == 0x01) && (recievOnDMA & 0x04 == 0x04)) {
     //#error "You cannot select 2 reception parameters"
     //    }
-        switch (usart)
-        {
-        case USART0:
-        {
-            rcu_periph_clock_enable(RCU_USART0);
-            break;
-        }
-        case USART1:
-        {
-            rcu_periph_clock_enable(RCU_USART1);
-            break;
-        }
-        case USART2:
-        {
-            rcu_periph_clock_enable(RCU_USART2);
-            break;
-        }
-        case UART3:
-        {
-            rcu_periph_clock_enable(RCU_UART3);
-            break;
-        }
-        case UART4:
-        {
-            rcu_periph_clock_enable(RCU_UART4);
-            break;
-        }
-        case USART5:
-        {
-            rcu_periph_clock_enable(RCU_USART5);
-            break;
-        }
-        case UART6:
-        {
-            rcu_periph_clock_enable(RCU_UART6);
-            break;
-        }
-        case UART7:
-        {
-            rcu_periph_clock_enable(RCU_UART7);
-            break;
-        }
-        default:
-        {
-            //#error Error parametr USART confInterrupt
-            break;
-        }
-        }
-  
-  
+    switch (usart)
+    {
+    case USART0:
+    {
+        rcu_periph_clock_enable(RCU_USART0);
+        break;
+    }
+    case USART1:
+    {
+        rcu_periph_clock_enable(RCU_USART1);
+        break;
+    }
+    case USART2:
+    {
+        rcu_periph_clock_enable(RCU_USART2);
+        break;
+    }
+    case UART3:
+    {
+        rcu_periph_clock_enable(RCU_UART3);
+        break;
+    }
+    case UART4:
+    {
+        rcu_periph_clock_enable(RCU_UART4);
+        break;
+    }
+    case USART5:
+    {
+        rcu_periph_clock_enable(RCU_USART5);
+        break;
+    }
+    case UART6:
+    {
+        rcu_periph_clock_enable(RCU_UART6);
+        break;
+    }
+    case UART7:
+    {
+        rcu_periph_clock_enable(RCU_UART7);
+        break;
+    }
+    default:
+    {
+        //#error Error parametr USART confInterrupt
+        break;
+    }
+    }
+
+
     usart_deinit(usart);
     usart_data_first_config(usart, msbf);
     usart_oversample_config(usart, oversample);
     usart_baudrate_set(usart, baudrate);
 
     usart_word_length_set(usart, USART_WL_8BIT);
-    usart_stop_bit_set   (usart, USART_STB_1BIT);
-    usart_parity_config  (usart, USART_PM_NONE);
+    usart_stop_bit_set(usart, USART_STB_1BIT);
+    usart_parity_config(usart, USART_PM_NONE);
 
     usart_hardware_flow_rts_config(usart, USART_RTS_DISABLE);
     usart_hardware_flow_cts_config(usart, USART_CTS_DISABLE);
 
-    usart_receive_config (usart, USART_RECEIVE_ENABLE);
+    usart_receive_config(usart, USART_RECEIVE_ENABLE);
     usart_transmit_config(usart, USART_TRANSMIT_ENABLE);
 
     if (receiveRBNE & configIrqn) {
@@ -620,8 +635,8 @@ void ConfigUsart(uint32_t usart, uint8_t oversample, uint32_t baudrate, uint32_t
     \param[out] none
     \retval     none
 */
-void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circulationEnable, 
-                       uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMATransmit iRQn)
+void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circulationEnable,
+    uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, uint8_t iRQn)
 {
     dma_channel_enum channelTx = 0;
     uint32_t dma_periph = 0;
@@ -699,23 +714,32 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     /* USART0 DMA receiving configuration*/
     dma_deinit(dma_periph, channelTx);
 
-    dma_init_struct.direction           = DMA_PERIPH_TO_MEMORY;		// Peripheral to memory */
-    dma_init_struct.memory0_addr        = (uint32_t)buf;			// Set the memory receiving base address */
-    dma_init_struct.memory_inc          = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing */
-    dma_init_struct.number              = lenBuf;
-    dma_init_struct.periph_addr         = USARTn_DATA_ADDRESS(usart);
-    dma_init_struct.periph_inc          = DMA_PERIPH_INCREASE_DISABLE;
+    dma_init_struct.direction = DMA_PERIPH_TO_MEMORY;		// Peripheral to memory */
+    dma_init_struct.memory0_addr = (uint32_t)buf;			// Set the memory receiving base address */
+    dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing */
+    dma_init_struct.number = lenBuf;
+    dma_init_struct.periph_addr = USARTn_DATA_ADDRESS(usart);
+    dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;
     dma_init_struct.periph_memory_width = DMA_PERIPH_WIDTH_8BIT;
-    dma_init_struct.priority            = channelPriorityDMA;
+    dma_init_struct.priority = channelPriorityDMA;
     if (circulationEnable) {
-        dma_init_struct.circular_mode   = DMA_CIRCULAR_MODE_ENABLE;
-    }else{
-        dma_init_struct.circular_mode   = DMA_CIRCULAR_MODE_DISABLE;
+        dma_init_struct.circular_mode = DMA_CIRCULAR_MODE_ENABLE;
     }
-    dma_single_data_mode_init       (dma_periph, channelTx, &dma_init_struct); 					// Initialize DMA */according to the configuration of the structure  
+    else {
+        dma_init_struct.circular_mode = DMA_CIRCULAR_MODE_DISABLE;
+    }
+    dma_single_data_mode_init(dma_periph, channelTx, &dma_init_struct); 					// Initialize DMA */according to the configuration of the structure  
     dma_channel_subperipheral_select(dma_periph, channelTx, dma_sub_periph);
-    if (transmit_DmaIRQn & iRQn) {
-      switch (usart)
+    if (iRQn != non_IRQn_Tx) {
+        if (iRQn & full_transmit_DmaIRQn) {
+            dma_interrupt_enable(dma_periph, channelTx, DMA_INT_FTF);
+            dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_FTF);
+        }
+        if (iRQn & half_transmit_DmaIRQn) {
+            dma_interrupt_enable(dma_periph, channelTx, DMA_INT_HTF);
+            dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_HTF);
+        }
+        switch (usart)
         {
         case USART0:
         {
@@ -762,17 +786,14 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
 
             break;
         }
-      }
-        dma_interrupt_enable        (dma_periph, channelTx, DMA_INT_FTF);
-        dma_interrupt_flag_clear    (dma_periph, channelTx, DMA_INT_FTF);
+        }
     }
-    dma_channel_enable              (dma_periph, channelTx);
-    usart_dma_transmit_config       (usart, USART_TRANSMIT_DMA_ENABLE); 
+    dma_channel_enable(dma_periph, channelTx);
+    usart_dma_transmit_config(usart, USART_TRANSMIT_DMA_ENABLE);
     if (non_IRQn_Tx != iRQn) {
-      nvic_irq_enable               (TX_irqn, priority, sub_priority);
+        nvic_irq_enable(TX_irqn, priority, sub_priority);
     }
-   
-   
+
 }
 /*!
  \arg when using dma, you first call ConfigUsart, then ConfigUsartDMA_Rx
@@ -793,13 +814,13 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     \param[out] none
     \retval     none
 */
-void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circulationEnable, 
-                       uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMAReciev   iRQn)
+void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circulationEnable,
+    uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, uint8_t iRQn)
 {
-    dma_channel_enum channelRx= 0;
-    uint32_t dma_periph       = 0;
-    uint32_t dma_sub_periph   = 0;
-    IRQn_Type RX_irqn         = 0;
+    dma_channel_enum channelRx = 0;
+    uint32_t dma_periph = 0;
+    uint32_t dma_sub_periph = 0;
+    IRQn_Type RX_irqn = 0;
 
     switch (usart)
     {
@@ -872,23 +893,24 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     /* USART0 DMA receiving configuration*/
     dma_deinit(dma_periph, channelRx);
 
-    dma_init_struct.direction           = DMA_PERIPH_TO_MEMORY;		// Peripheral to memory */
-    dma_init_struct.memory0_addr        = (uint32_t)buf;			// Set the memory receiving base address */
-    dma_init_struct.memory_inc          = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing */
-    dma_init_struct.number              = lenBuf;
-    dma_init_struct.periph_addr         = USARTn_DATA_ADDRESS(usart);
-    dma_init_struct.periph_inc          = DMA_PERIPH_INCREASE_DISABLE;
+    dma_init_struct.direction = DMA_PERIPH_TO_MEMORY;		// Peripheral to memory */
+    dma_init_struct.memory0_addr = (uint32_t)buf;			// Set the memory receiving base address */
+    dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing */
+    dma_init_struct.number = lenBuf;
+    dma_init_struct.periph_addr = USARTn_DATA_ADDRESS(usart);
+    dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;
     dma_init_struct.periph_memory_width = DMA_PERIPH_WIDTH_8BIT;
-    dma_init_struct.priority            = channelPriorityDMA;
-    if (circulationEnable){
-        dma_init_struct.circular_mode   = DMA_CIRCULAR_MODE_ENABLE;
-    }else{
-        dma_init_struct.circular_mode   = DMA_CIRCULAR_MODE_DISABLE;
+    dma_init_struct.priority = channelPriorityDMA;
+    if (circulationEnable) {
+        dma_init_struct.circular_mode = DMA_CIRCULAR_MODE_ENABLE;
     }
-    dma_single_data_mode_init       (dma_periph, channelRx, &dma_init_struct); 					// Initialize DMA */according to the configuration of the structure  
+    else {
+        dma_init_struct.circular_mode = DMA_CIRCULAR_MODE_DISABLE;
+    }
+    dma_single_data_mode_init(dma_periph, channelRx, &dma_init_struct); 					// Initialize DMA */according to the configuration of the structure  
     dma_channel_subperipheral_select(dma_periph, channelRx, dma_sub_periph);
-    usart_dma_receive_config        (usart, USART_RECEIVE_DMA_ENABLE);
-    
+    usart_dma_receive_config(usart, USART_RECEIVE_DMA_ENABLE);
+
     if (reciev_UartIRQn & iRQn) {
         switch (usart)
         {
@@ -938,12 +960,12 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
             break;
         }
         }
-        usart_interrupt_enable      (usart, USART_INT_IDLE);
-        usart_interrupt_flag_clear  (usart, USART_INT_FLAG_IDLE);
+        usart_interrupt_enable(usart, USART_INT_IDLE);
+        usart_interrupt_flag_clear(usart, USART_INT_FLAG_IDLE);
     }
-    if (reciev_DmaIRQn  & iRQn) {
-       switch (usart)
-       {
+    if (iRQn != reciev_UartIRQn && iRQn != non_IRQn_Rx) {
+        switch (usart)
+        {
         case USART0:
         {
             RX_irqn = DMA1_Channel5_IRQn;
@@ -989,13 +1011,20 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
 
             break;
         }
-       }
-        dma_interrupt_enable        (dma_periph, channelRx, DMA_INT_FTF);
-        dma_interrupt_flag_clear    (dma_periph, channelRx, DMA_INT_FTF);
+        }
+
+        if (iRQn & full_reciev_DmaIRQn) {
+            dma_interrupt_enable(dma_periph, channelRx, DMA_INT_FTF);
+            dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_FTF);
+        }
+        if (iRQn & half_reciev_DmaIRQn) {
+            dma_interrupt_enable(dma_periph, channelRx, DMA_INT_HTF);
+            dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_HTF);
+        }
     }
-    dma_channel_enable              (dma_periph, channelRx);
+    dma_channel_enable(dma_periph, channelRx);
     if (non_IRQn_Rx != iRQn) {
-        nvic_irq_enable             (RX_irqn, priority, sub_priority);
+        nvic_irq_enable(RX_irqn, priority, sub_priority);
     }
 }
 /*
@@ -1015,7 +1044,7 @@ void USART0_IRQHandler(void)
     }
 
 };
-void USART1_IRQHandler(void) 
+void USART1_IRQHandler(void)
 {
     if (usart_interrupt_flag_get  (USART1, USART_INT_FLAG_IDLE)!= RESET) {
         usart_interrupt_flag_clear(USART1, USART_INT_FLAG_IDLE);
@@ -1030,7 +1059,7 @@ void USART1_IRQHandler(void)
         usart_interrupt_flag_clear(USART1, USART_INT_FLAG_TC);
     }
 };
-void USART2_IRQHandler(void) 
+void USART2_IRQHandler(void)
 {
     if (usart_interrupt_flag_get  (USART2, USART_INT_FLAG_IDLE)!= RESET) {
         usart_interrupt_flag_clear(USART2, USART_INT_FLAG_IDLE);
@@ -1134,7 +1163,7 @@ void UART7_IRQHandler(void)
 
 #ifdef SENDING_VIA_USART
 
-void Usart_send_byte( uint8_t byte, uint32_t usart_perith)
+void Usart_send_byte(uint8_t byte, uint32_t usart_perith)
 {
     // Send a byte data to USART0 
     usart_data_transmit(usart_perith, byte);
@@ -1143,7 +1172,7 @@ void Usart_send_byte( uint8_t byte, uint32_t usart_perith)
     while (usart_flag_get(usart_perith, USART_FLAG_TBE) == RESET);
 }
 
-void Usart_send_buf( uint8_t* buf, uint32_t usart_perith, const uint32_t len)
+void Usart_send_buf(uint8_t* buf, uint32_t usart_perith, const uint32_t len)
 {
     unsigned int k = 0;
     do
@@ -1152,7 +1181,7 @@ void Usart_send_buf( uint8_t* buf, uint32_t usart_perith, const uint32_t len)
     } while (k < len);
 }
 
-void Usart_send_string( uint8_t* str, uint32_t usart_perith)
+void Usart_send_string(uint8_t* str, uint32_t usart_perith)
 {
     unsigned int k = 0;
     do
