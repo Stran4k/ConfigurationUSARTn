@@ -28,7 +28,7 @@ enum confInterrupt
     non             = 0x00, // without interruptions
     receiveRBNE     = 0x01, // reception interruption
     transmissionTBE = 0x02, // transmitter buffer empty interrupt
-    transmissionTC  = 0x03, // ransmission complete interrupt
+    transmissionTC  = 0x04, // ransmission complete interrupt
 };
 enum confInterruptDMAReciev
 {    
