@@ -237,7 +237,7 @@ void DMA1_Channel6_IRQHandler(void);//             tx usart5
 
 
 #ifdef SENDING_VIA_USART
-void Usart_send_byte(uint8_t byte, uint32_t usart_perith);
-void Usart_send_buf(uint8_t* buf, uint32_t usart_perith, const uint32_t len);
-void Usart_send_string(uint8_t* str, uint32_t usart_perith);
+void Usart_send_byte  (const uint8_t byte, const uint32_t usart_perith);
+void Usart_send_buf   (const void* buf,    const uint32_t usart_perith, const uint32_t len);
+void Usart_send_string(const void* str,    const uint32_t usart_perith);
 #endif
