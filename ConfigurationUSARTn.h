@@ -30,12 +30,12 @@ enum confInterrupt
     transmissionTBE = 0x02, // transmitter buffer empty interrupt
     transmissionTC = 0x04, // ransmission complete interrupt
 };
-enum confInterruptDMAReciev
+enum confInterruptDMAReceiv
 {
     non_IRQn_Rx = 0x00,  // without interruptions
-    reciev_UartIRQn = 0x80,  // reception interruption thith usart
-    full_reciev_DmaIRQn = 0x01,  // reception interruption thith dma   full transfer
-    half_reciev_DmaIRQn = 0x08   // reception interruption thith dma   half transfer
+    receiv_UartIRQn = 0x80,  // reception interruption thith usart
+    full_receiv_DmaIRQn = 0x01,  // reception interruption thith dma   full transfer
+    half_receiv_DmaIRQn = 0x08   // reception interruption thith dma   half transfer
 };
 enum confInterruptDMATransmit
 {
@@ -54,7 +54,7 @@ enum usartDMA
     Uart3 = UART3
 };
 /*!
- \arg when using dma, you first call ConfigUsart, then ConfigDmaFromRecievUsart
+ \arg when using dma, you first call ConfigUsart, then ConfigDmaFromReceivUsart
 
     \brief      config USARTx
     \param[in]  usart_periph: USARTx(x=0,1,2)/UARTx(x=3,4)
@@ -66,7 +66,7 @@ enum usartDMA
     \param[in]  configIrqn: bitmask from using an interrupt    (enum confInterrupt)
                 only one parameter can be selected which is shown as below:
       \arg       non             - without interruptions
-      \arg       recievRBNE      - reception interruption
+      \arg       receivRBNE      - reception interruption
       \arg       transmissionTBE - transmitter buffer empty interrupt
       \arg       transmissionTC  - ransmission complete interrupt
     \param[in]  priority:     using an interrupt
@@ -108,10 +108,10 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
       \arg       DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
-    \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptReciev)
+    \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptreceiv)
       \arg       non_IRQn_Rx       - without interruptions
-      \arg       reciev_UartIRQn   - reception interruption Usart
-      \arg       reciev_DmaIRQn    - reception interruption DMA
+      \arg       receiv_UartIRQn   - reception interruption Usart
+      \arg       receiv_DmaIRQn    - reception interruption DMA
     \param[out] none
     \retval     none
 */
@@ -136,7 +136,7 @@ void DMA1_Channel2_IRQHandler(void);//UART3  RX
 #ifdef GD32F450_
 #include "gd32f4xx.h"
 /*!
- \arg when using dma, you first call ConfigUsart, then ConfigDmaFromRecievUsart
+ \arg when using dma, you first call ConfigUsart, then ConfigDmaFromreceivUsart
 
     \brief      config USARTx
     \param[in]  usart: USARTx(x=0,1,2)/UARTx(x=3,4)
@@ -151,10 +151,10 @@ void DMA1_Channel2_IRQHandler(void);//UART3  RX
     \param[in]  configIrqn: bitmask from using an interrupt    (enum confInterrupt)
                 only one parameter can be selected which is shown as below:
       \arg       non             - without interruptions
-      \arg       reciev          - reception interruption
+      \arg       receiv          - reception interruption
       \arg       transmissionTBE - transmitter buffer empty interrupt
       \arg       transmissionTC  - ransmission complete interrupt
-      \arg       recievOnDMA     - reception interruption thith dma (only USARTx(x=0,1)/UART3)
+      \arg       receivOnDMA     - reception interruption thith dma (only USARTx(x=0,1)/UART3)
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[out] none
@@ -195,10 +195,10 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
       \arg        DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
-    \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptReciev)
+    \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptreceiv)
       \arg       non_IRQn_Rx       - without interruptions
-      \arg       reciev_UartIRQn   - reception interruption Usart
-      \arg       reciev_DmaIRQn    - reception interruption DMA
+      \arg       receiv_UartIRQn   - reception interruption Usart
+      \arg       receiv_DmaIRQn    - reception interruption DMA
     \param[out] none
     \retval     none
 */
