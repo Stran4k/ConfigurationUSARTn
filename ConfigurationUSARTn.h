@@ -7,8 +7,8 @@
 create by Sikorsky VI
 */
 //uncomment your processor
-//#define GD32F303_
-#define GD32F450_
+#define GD32F303_
+//#define GD32F450_
 
 #define SENDING_VIA_USART // functions of sending via USART without DMA
 /*

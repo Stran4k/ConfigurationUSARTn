@@ -130,7 +130,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMATransmit iRQn)
 {
        usart_disable       (usart);
-    dma_channel_enum channel = 0;
+    dma_channel_enum channelTx = 0;
     uint32_t dma_periph = 0;
     uint8_t  TX_irqn = 0;
     switch (usart)
@@ -138,19 +138,19 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     case USART0:
     {
         dma_periph = DMA0;
-        channel = DMA_CH3;
+        channelTx = DMA_CH3;
         break;
     }
     case USART1:
     {
         dma_periph = DMA0;
-        channel = DMA_CH6;
+        channelTx = DMA_CH6;
         break;
     }
     case UART3:
     {
         dma_periph = DMA1;
-        channel = DMA_CH4;
+        channelTx = DMA_CH4;
         break;
     }
     default:
@@ -163,7 +163,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
 
     // USART0 DMA receiving configuration
     dma_parameter_struct dma_init_struct;
-    dma_deinit(dma_periph, channel);
+    dma_deinit(dma_periph, channelTx);
     dma_init_struct.direction = DMA_PERIPHERAL_TO_MEMORY;		// Peripheral to memory
     dma_init_struct.memory_addr = buf;			                // Set the memory receiving base address
     dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing
@@ -174,25 +174,25 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;	// The peripheral address does not increase
     dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;	// 8 -bit external data
     dma_init_struct.priority = channelPriorityDMA;			// The highest DMA channel priority
-    dma_init(dma_periph, channel, &dma_init_struct); 			// Initialize DMA according to the configuration of the structure
+    dma_init(dma_periph, channelTx, &dma_init_struct); 			// Initialize DMA according to the configuration of the structure
 
     if (circulationEnable) {
-        dma_circulation_enable(dma_periph, channel);
+        dma_circulation_enable(dma_periph, channelTx);
     }
     else {
-        dma_circulation_disable(dma_periph, channel);
+        dma_circulation_disable(dma_periph, channelTx);
     }
 
-    dma_memory_to_memory_disable(dma_periph, channel);	        // DMA memory to the memory mode is not turned on
+    dma_memory_to_memory_disable(dma_periph, channelTx);	        // DMA memory to the memory mode is not turned on
 
     usart_dma_transmit_config(usart, USART_DENT_ENABLE);
     if (iRQn != non_IRQn_Tx) {
         if (iRQn & full_transmit_DmaIRQn) {
-            dma_interrupt_enable(dma_periph, channelTx, DMA_INT_FTF);
+            dma_interrupt_enable    (dma_periph, channelTx, DMA_INT_FTF);
             dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_FTF);
         }
         if (iRQn & half_transmit_DmaIRQn) {
-            dma_interrupt_enable(dma_periph, channelTx, DMA_INT_HTF);
+            dma_interrupt_enable    (dma_periph, channelTx, DMA_INT_HTF);
             dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_HTF);
         }
        switch (usart)
@@ -220,7 +220,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
        }
     }
     usart_enable(usart);
-    dma_channel_enable(dma_periph, channel);
+    dma_channel_enable(dma_periph, channelTx);
 
     if (iRQn != non_IRQn_Tx) {
         nvic_irq_enable(TX_irqn, priority, sub_priority);
@@ -253,7 +253,7 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, enum confInterruptDMAReciev   iRQn)
 {
        usart_disable       (usart);
-    dma_channel_enum channel = 0;
+    dma_channel_enum channelRx = 0;
     uint32_t dma_periph = 0;
     uint8_t RX_irqn = 0;
     switch (usart)
@@ -261,19 +261,19 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     case USART0:
     {
         dma_periph = DMA0;
-        channel = DMA_CH4;
+        channelRx = DMA_CH4;
         break;
     }
     case USART1:
     {
         dma_periph = DMA0;
-        channel = DMA_CH5;
+        channelRx = DMA_CH5;
         break;
     }
     case UART3:
     {
         dma_periph = DMA1;
-        channel = DMA_CH2;
+        channelRx = DMA_CH2;
         break;
     }
     default:
@@ -283,7 +283,7 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     }
     }
     dma_parameter_struct dma_init_struct;
-    dma_deinit(dma_periph, channel);
+    dma_deinit(dma_periph, channelRx);
     dma_init_struct.direction = DMA_PERIPHERAL_TO_MEMORY;		// Peripheral to memory
     dma_init_struct.memory_addr = buf;			                // Set the memory receiving base address
     dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing
@@ -295,16 +295,16 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;	// 8 -bit external data
 
     dma_init_struct.priority = channelPriorityDMA;			// The highest DMA channel priority
-    dma_init(dma_periph, channel, &dma_init_struct); 			// Initialize DMA according to the configuration of the structure
+    dma_init(dma_periph, channelRx, &dma_init_struct); 			// Initialize DMA according to the configuration of the structure
 
     if (circulationEnable) {
-        dma_circulation_enable(dma_periph, channel);
+        dma_circulation_enable(dma_periph, channelRx);
     }
     else {
-        dma_circulation_disable(dma_periph, channel);
+        dma_circulation_disable(dma_periph, channelRx);
     }
 
-    dma_memory_to_memory_disable(dma_periph, channel);	        // DMA memory to the memory mode is not turned on
+    dma_memory_to_memory_disable(dma_periph, channelRx);	        // DMA memory to the memory mode is not turned on
 
     usart_dma_receive_config(usart, USART_DENR_ENABLE);
 
@@ -361,17 +361,17 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
         }
         }
         if (iRQn & full_reciev_DmaIRQn) {
-            dma_interrupt_enable(dma_periph, channelRx, DMA_INT_FTF);
+            dma_interrupt_enable    (dma_periph, channelRx, DMA_INT_FTF);
             dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_FTF);
         }
         if (iRQn & half_reciev_DmaIRQn) {
-            dma_interrupt_enable(dma_periph, channelRx, DMA_INT_HTF);
+            dma_interrupt_enable    (dma_periph, channelRx, DMA_INT_HTF);
             dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_HTF);
         }
     }
 	
     usart_enable(usart);
-    dma_channel_enable(dma_periph, channel);
+    dma_channel_enable(dma_periph, channelRx);
     if (non_IRQn_Rx != iRQn) {
         nvic_irq_enable(RX_irqn, priority, sub_priority);
     }
