@@ -7,10 +7,10 @@
 create by Sikorsky VI
 */
 //uncomment your processor
-#define GD32F303_
-//#define GD32F450_
+//#define GD32F303_
+#define GD32F450_
 
-#define SENDING_VIA_USART // functions of sending via USART without DMA
+//#define SENDING_VIA_USART // functions of sending via USART without DMA
 /*
 #define USARTx_PORT         GPIOA
 #define USARTx_PIN_TX       GPIO_PIN_9
@@ -25,23 +25,23 @@ create by Sikorsky VI
 
 enum confInterrupt
 {
-    non = 0x00, // without interruptions
-    receiveRBNE = 0x01, // reception interruption
+    non             = 0x00, // without interruptions
+    receiveRBNE     = 0x01, // reception interruption
     transmissionTBE = 0x02, // transmitter buffer empty interrupt
-    transmissionTC = 0x04, // ransmission complete interrupt
+    transmissionTC  = 0x04, // transmission complete interrupt
 };
 enum confInterruptDMAReceiv
 {
-    non_IRQn_Rx = 0x00,  // without interruptions
-    receiv_UartIRQn = 0x80,  // reception interruption thith usart
-    full_receiv_DmaIRQn = 0x01,  // reception interruption thith dma   full transfer
-    half_receiv_DmaIRQn = 0x08   // reception interruption thith dma   half transfer
+      iRQn_non_Rx          = 0x00,  //- without interruptions
+      iRQn_receiv_Uart     = 0x80,  //- reception interruption Usart
+      iRQn_half_receiv_Dma = 0x01,  //- reception interruption thith dma half transfer
+      iRQn_full_receiv_Dma = 0x08,  //- reception interruption thith dma full transfer
 };
 enum confInterruptDMATransmit
 {
-    non_IRQn_Tx = 0x00, // without interruptions
-    full_transmit_DmaIRQn = 0x01, // transmition interruption thith dma full transfer
-    half_transmit_DmaIRQn = 0x08  // transmition interruption thith dma half transfer
+    iRQn_non_Tx            = 0x00, //- without interruptions
+    iRQn_half_transmit_Dma = 0x01, //- transmition interruption thith dma half transfer
+    iRQn_full_transmit_Dma = 0x08  //- transmition interruption thith dma full transfer
 };
 
 #ifdef GD32F303_
@@ -89,8 +89,9 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t confi
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptTransmit)
-      \arg       non_IRQn_Tx       - without interruptions
-      \arg       transmit_DmaIRQn    - reception interruption DMA
+      \arg       iRQn_non_Tx            - without interruptions
+      \arg       iRQn_half_transmit_Dma - transmition interruption thith dma half transfer
+      \arg       iRQn_full_transmit_Dma - transmition interruption thith dma full transfer
     \param[out] none
     \retval     none
 */
@@ -109,9 +110,10 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptreceiv)
-      \arg       non_IRQn_Rx       - without interruptions
-      \arg       receiv_UartIRQn   - reception interruption Usart
-      \arg       receiv_DmaIRQn    - reception interruption DMA
+      \arg       iRQn_non_Rx          - without interruptions
+      \arg       iRQn_receiv_Uart     - reception interruption Usart
+      \arg       iRQn_half_receiv_Dma - reception interruption thith dma half transfer
+      \arg       iRQn_full_receiv_Dma - reception interruption thith dma full transfer
     \param[out] none
     \retval     none
 */
@@ -148,10 +150,16 @@ void DMA1_Channel2_IRQHandler(void);//UART3  RX
                 only one parameter can be selected which is shown as below:
       \arg       USART_MSBF_LSB: LSB first
       \arg       USART_MSBF_MSB: MSB first
+    \param[in]  oversamp: oversample value
+                only one parameter can be selected which is shown as below:
+      \arg        USART_OVSMOD_8:  8 bits
+      \arg        USART_OVSMOD_16: 16 bits
+    \param[out] none
+    \retval     none
     \param[in]  configIrqn: bitmask from using an interrupt    (enum confInterrupt)
                 only one parameter can be selected which is shown as below:
       \arg       non             - without interruptions
-      \arg       receiv          - reception interruption
+      \arg       receiveRBNE     - reception interruption
       \arg       transmissionTBE - transmitter buffer empty interrupt
       \arg       transmissionTC  - ransmission complete interrupt
       \arg       receivOnDMA     - reception interruption thith dma (only USARTx(x=0,1)/UART3)
@@ -162,7 +170,7 @@ void DMA1_Channel2_IRQHandler(void);//UART3  RX
 
     \example: ConfigUsart(USART0,5000000,receive,0,4);
 */
-void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t oversample, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority);
+void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint32_t oversample, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority);
 /*!
  \arg when using dma, you first call ConfigUsart, then ConfigUsartDMA_Tx
     \brief      enable DMAx
@@ -176,8 +184,9 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t overs
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptTransmit)
-      \arg       non_IRQn_Tx       - without interruptions
-      \arg       transmit_DmaIRQn    - reception interruption DMA
+      \arg       iRQn_non_Tx            - without interruptions
+      \arg       iRQn_half_transmit_Dma - transmition interruption thith dma half transfer
+      \arg       iRQn_full_transmit_Dma - transmition interruption thith dma full transfer
     \param[out] none
     \retval     none
 */
@@ -196,9 +205,10 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptreceiv)
-      \arg       non_IRQn_Rx       - without interruptions
-      \arg       receiv_UartIRQn   - reception interruption Usart
-      \arg       receiv_DmaIRQn    - reception interruption DMA
+      \arg       iRQn_non_Rx          - without interruptions
+      \arg       iRQn_receiv_Uart     - reception interruption Usart
+      \arg       iRQn_half_receiv_Dma - reception interruption thith dma half transfer
+      \arg       iRQn_full_receiv_Dma - reception interruption thith dma full transfer
     \param[out] none
     \retval     none
 */

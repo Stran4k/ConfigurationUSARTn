@@ -8,7 +8,7 @@
 
 #ifdef GD32F303_
 /*!
- \arg when using dma, you first call ConfigUsart, then ConfigDmaFromreceivUsart
+ \arg when using dma, you first call ConfigUsart, then ConfigDmaFromReceivUsart
 
     \brief      config USARTx
     \param[in]  usart_periph: USARTx(x=0,1,2)/UARTx(x=3,4)
@@ -110,8 +110,8 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t confi
 
 /*!
  \arg when using dma, you first call ConfigUsart, then ConfigUsartDMA_Tx
-
-    \brief      enable DMAx from USARTx(x=0,1)/UART3  receiv interrupts
+    \brief      enable DMAx
+    \param[in]  usart: usart_periph
     \param[in]  buf: buffer for received data
     \param[in]  lenBuf: size buffer
     \param[in]  circulationEnable: 1/0
@@ -121,8 +121,9 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t confi
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptTransmit)
-      \arg       non_IRQn_Tx       - without interruptions
-      \arg       transmit_DmaIRQn    - reception interruption DMA
+      \arg       iRQn_non_Tx            - without interruptions
+      \arg       iRQn_half_transmit_Dma - transmition interruption thith dma half transfer
+      \arg       iRQn_full_transmit_Dma - transmition interruption thith dma full transfer
     \param[out] none
     \retval     none
 */
@@ -186,12 +187,12 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     dma_memory_to_memory_disable(dma_periph, channelTx);	        // DMA memory to the memory mode is not turned on
 
     usart_dma_transmit_config(usart, USART_DENT_ENABLE);
-    if (iRQn != non_IRQn_Tx) {
-        if (iRQn & full_transmit_DmaIRQn) {
+    if (iRQn != iRQn_non_Tx) {
+        if (iRQn & iRQn_full_transmit_Dma) {
             dma_interrupt_enable    (dma_periph, channelTx, DMA_INT_FTF);
             dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_FTF);
         }
-        if (iRQn & half_transmit_DmaIRQn) {
+        if (iRQn & iRQn_half_transmit_Dma) {
             dma_interrupt_enable    (dma_periph, channelTx, DMA_INT_HTF);
             dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_HTF);
         }
@@ -222,7 +223,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     usart_enable(usart);
     dma_channel_enable(dma_periph, channelTx);
 
-    if (iRQn != non_IRQn_Tx) {
+    if (iRQn != iRQn_non_Tx) {
         nvic_irq_enable(TX_irqn, priority, sub_priority);
     }
 }
@@ -231,8 +232,8 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
 
 /*!
  \arg when using dma, you first call ConfigUsart, then ConfigUsartDMA_Rx
-
-    \brief      enable DMAx from USARTx(x=0,1)/UART3  receiv interrupts
+    \brief      enable DMAx
+    \param[in]  usart: usart_periph
     \param[in]  buf: buffer for received data
     \param[in]  lenBuf: size buffer
     \param[in]  circulationEnable: 1/0
@@ -241,11 +242,11 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
       \arg       DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
-    \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptDMAreceiv)
-      \arg       non_IRQn_Rx       - without interruptions
-      \arg       receiv_UartIRQn   - reception interruption Usart
-      \arg       receiv_DmaIRQn    - reception interruption DMA
-
+    \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptreceiv)
+      \arg       iRQn_non_Rx          - without interruptions
+      \arg       iRQn_receiv_Uart     - reception interruption Usart
+      \arg       iRQn_half_receiv_Dma - reception interruption thith dma half transfer
+      \arg       iRQn_full_receiv_Dma - reception interruption thith dma full transfer
     \param[out] none
     \retval     none
 */
@@ -308,7 +309,7 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
 
     usart_dma_receive_config(usart, USART_DENR_ENABLE);
 
-    if (receiv_UartIRQn & iRQn) {
+    if (iRQn_receiv_Uart & iRQn) {
         usart_interrupt_enable(usart, USART_INT_IDLE);
         usart_interrupt_flag_clear(usart, USART_INT_FLAG_IDLE);
         switch (usart)
@@ -336,7 +337,7 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
         }
     }
 	
-    if (iRQn != receiv_UartIRQn && iRQn != non_IRQn_Rx) {
+    if (iRQn != iRQn_receiv_Uart && iRQn != iRQn_non_Rx) {
        switch (usart)
        {
         case USART0:
@@ -360,11 +361,11 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
             break;
         }
         }
-        if (iRQn & full_receiv_DmaIRQn) {
+        if (iRQn & iRQn_full_receiv_Dma) {
             dma_interrupt_enable    (dma_periph, channelRx, DMA_INT_FTF);
             dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_FTF);
         }
-        if (iRQn & half_receiv_DmaIRQn) {
+        if (iRQn & iRQn_half_receiv_Dma) {
             dma_interrupt_enable    (dma_periph, channelRx, DMA_INT_HTF);
             dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_HTF);
         }
@@ -372,7 +373,7 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
 	
     usart_enable(usart);
     dma_channel_enable(dma_periph, channelRx);
-    if (non_IRQn_Rx != iRQn) {
+    if (iRQn_non_Rx != iRQn) {
         nvic_irq_enable(RX_irqn, priority, sub_priority);
     }
 }
@@ -458,28 +459,38 @@ void UART4_IRQHandler(void)
 /*!
  \arg when using dma, you first call ConfigUsart, then ConfigDmaFromreceivUsart
 
-    \brief      config USARTx/UARTx
-    \param[in]  usart: USARTx/UARTx
+    \brief      config USARTx
+    \param[in]  usart: USARTx(x=0,1,2)/UARTx(x=3,4)
     \param[in]  oversample:
-      \arg       USART_OVSMOD_8
-      \arg       USART_OVSMOD_16
+      \arg      USART_OVSMOD_8
+      \arg      USART_OVSMOD_16
     \param[in]  baudrate:
     \param[in]  msbf: LSB/MSB
                 only one parameter can be selected which is shown as below:
       \arg       USART_MSBF_LSB: LSB first
       \arg       USART_MSBF_MSB: MSB first
+    \param[in]  oversamp: oversample value
+                only one parameter can be selected which is shown as below:
+      \arg        USART_OVSMOD_8:  8 bits
+      \arg        USART_OVSMOD_16: 16 bits
+    \param[out] none
+    \retval     none
     \param[in]  configIrqn: bitmask from using an interrupt    (enum confInterrupt)
                 only one parameter can be selected which is shown as below:
       \arg       non             - without interruptions
-      \arg       receivRBNE      - reception interruption
+      \arg       receiveRBNE     - reception interruption
       \arg       transmissionTBE - transmitter buffer empty interrupt
       \arg       transmissionTC  - ransmission complete interrupt
+      \arg       receivOnDMA     - reception interruption thith dma (only USARTx(x=0,1)/UART3)
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[out] none
     \retval     none
+
+    \example: ConfigUsart(USART0,5000000,receive,0,4);
 */
-void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t oversample, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority)
+
+void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint32_t oversample, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority)
 {
 
     //    if ((receive & 0x01 == 0x01) && (receivOnDMA & 0x04 == 0x04)) {
@@ -630,8 +641,9 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t overs
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptTransmit)
-      \arg       non_IRQn_Tx       - without interruptions
-      \arg       transmit_DmaIRQn    - reception interruption DMA
+      \arg       iRQn_non_Tx            - without interruptions
+      \arg       iRQn_half_transmit_Dma - transmition interruption thith dma half transfer
+      \arg       iRQn_full_transmit_Dma - transmition interruption thith dma full transfer
     \param[out] none
     \retval     none
 */
@@ -731,12 +743,12 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     }
     dma_single_data_mode_init(dma_periph, channelTx, &dma_init_struct); 					// Initialize DMA */according to the configuration of the structure  
     dma_channel_subperipheral_select(dma_periph, channelTx, dma_sub_periph);
-    if (iRQn != non_IRQn_Tx) {
-        if (iRQn & full_transmit_DmaIRQn) {
+    if (iRQn != iRQn_non_Tx) {
+        if (iRQn & iRQn_full_transmit_Dma) {
             dma_interrupt_enable(dma_periph, channelTx, DMA_INT_FTF);
             dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_FTF);
         }
-        if (iRQn & half_transmit_DmaIRQn) {
+        if (iRQn & iRQn_half_transmit_Dma) {
             dma_interrupt_enable(dma_periph, channelTx, DMA_INT_HTF);
             dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_HTF);
         }
@@ -791,7 +803,7 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     }
     dma_channel_enable(dma_periph, channelTx);
     usart_dma_transmit_config(usart, USART_TRANSMIT_DMA_ENABLE);
-    if (non_IRQn_Tx != iRQn) {
+    if (iRQn_non_Tx != iRQn) {
         nvic_irq_enable(TX_irqn, priority, sub_priority);
     }
      usart_enable       (usart);
@@ -805,13 +817,14 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     \param[in]  circulationEnable: 1/0
     \param[in]  channelPriorityDMA:
                 only one parameter can be selected which is shown as below:
-      \arg       DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
+      \arg        DMA_PRIORITY_LOW, DMA_PRIORITY_MEDIUM, DMA_PRIORITY_HIGH, DMA_PRIORITY_ULTRA_HIGH
     \param[in]  priority:     using an interrupt
     \param[in]  sub_priority: using an interrupt
     \param[in]  iRQn: bitmask from using an interrupt    (enum confInterruptreceiv)
-      \arg       non_IRQn_Rx       - without interruptions
-      \arg       receiv_UartIRQn   - reception interruption Usart
-      \arg       receiv_DmaIRQn    - reception interruption DMA
+      \arg       iRQn_non_Rx          - without interruptions
+      \arg       iRQn_receiv_Uart     - reception interruption Usart
+      \arg       iRQn_half_receiv_Dma - reception interruption thith dma half transfer
+      \arg       iRQn_full_receiv_Dma - reception interruption thith dma full transfer
     \param[out] none
     \retval     none
 */
@@ -913,7 +926,7 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     dma_channel_subperipheral_select(dma_periph, channelRx, dma_sub_periph);
     usart_dma_receive_config(usart, USART_RECEIVE_DMA_ENABLE);
 
-    if (receiv_UartIRQn & iRQn) {
+    if (iRQn_receiv_Uart & iRQn) {
         switch (usart)
         {
         case USART0:
@@ -965,7 +978,7 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
         usart_interrupt_enable(usart, USART_INT_IDLE);
         usart_interrupt_flag_clear(usart, USART_INT_FLAG_IDLE);
     }
-    if (iRQn != receiv_UartIRQn && iRQn != non_IRQn_Rx) {
+    if (iRQn != iRQn_receiv_Uart && iRQn != iRQn_non_Rx) {
         switch (usart)
         {
         case USART0:
@@ -1015,17 +1028,17 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
         }
         }
 
-        if (iRQn & full_receiv_DmaIRQn) {
+        if (iRQn & iRQn_full_receiv_Dma) {
             dma_interrupt_enable(dma_periph, channelRx, DMA_INT_FTF);
             dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_FTF);
         }
-        if (iRQn & half_receiv_DmaIRQn) {
+        if (iRQn & iRQn_half_receiv_Dma) {
             dma_interrupt_enable(dma_periph, channelRx, DMA_INT_HTF);
             dma_interrupt_flag_clear(dma_periph, channelRx, DMA_INT_HTF);
         }
     }
     dma_channel_enable(dma_periph, channelRx);
-    if (non_IRQn_Rx != iRQn) {
+    if (iRQn_non_Rx != iRQn) {
         nvic_irq_enable(RX_irqn, priority, sub_priority);
     }
        usart_enable       (usart);
