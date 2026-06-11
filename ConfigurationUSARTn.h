@@ -183,6 +183,18 @@ void DMA-_Channel?_IRQHandler(void) // "?" = You number dma "^" = You dma channe
     
   }
 };
+
+ reset DMA channel to start transmit or reciev
+{
+		// Channel disable 
+		dma_channel_disable(DMA?, DMA_CH?);
+		
+		dma_memory_address_config(DMA?, DMA_CH?,(uint32_t)data_buffer);
+		dma_transfer_number_config(DMA?,DMA_CH?,length);
+		
+		// enable DMA channel to start tx or rx
+		dma_channel_enable(DMA?, DMA_CH?);
+}
 */
 #endif
 #ifdef GD32F450_
@@ -332,6 +344,7 @@ void DMA1_Channel5_IRQHandler(void);// rx usart0
 void DMA1_Channel7_IRQHandler(void);//             tx usart0
 void DMA1_Channel6_IRQHandler(void);//             tx usart5
 /* ex
+
 void DMA-_Channel?_IRQHandler(void) // "?" = You number dma "^" = You dma channel
 {
   if (dma_flag_get  (DMA?, DMA_CH^,DMA_FLAG_HTF)!= RESET) {
@@ -343,6 +356,23 @@ void DMA-_Channel?_IRQHandler(void) // "?" = You number dma "^" = You dma channe
     
   }
 };
+
+ reset DMA channel to start transmit or reciev
+{
+		//  Channel disable 
+		dma_channel_disable       (DMA?, DMA_CH?);
+		
+    dma_flag_clear            (DMA?, DMA_CH?, DMA_FLAG_FTF);
+    
+    dma_memory_address_config (DMA?, DMA_CH?, 0, (uint32_t)buffer_tx);
+    
+    dma_transfer_number_config(DMA?, DMA_CH?, BUFFER_TX_SIZE);
+    
+    //  Channel enable 
+    dma_channel_enable        (DMA?, DMA_CH?);
+}
+
+
 */
 #endif 
 
