@@ -10,7 +10,7 @@ create by Sikorsky VI
 //#define GD32F303_
 #define GD32F450_
 
-//#define SENDING_VIA_USART // functions of sending via USART without DMA
+#define SENDING_VIA_USART // functions of sending via USART without DMA
 /*
 #define USARTx_PORT         GPIOA
 #define USARTx_PIN_TX       GPIO_PIN_9
@@ -46,7 +46,15 @@ enum confInterruptDMATransmit
 
 #ifdef GD32F303_
 #include "gd32f30x.h" 
-
+/* Example
+  //// ====================  USART? ====================  
+  gpio_init(USART?_CK_PORT, GPIO_MODE_OUT_PP,       GPIO_OSPEED_50MHZ,  USART?_CK_PIN);
+  gpio_init(USART?_PORT,    GPIO_MODE_AF_PP,        GPIO_OSPEED_50MHZ,  USART?_TX_PIN);
+  gpio_init(USART?_PORT,    GPIO_MODE_IN_FLOATING,  GPIO_OSPEED_50MHZ,  USART?_RX_PIN); 
+  
+    ConfigUsart       (USART?,BAUDRATE,USART_MSBF_LSB,non,1,4);
+    ConfigUsartDMA_Rx (Usart?,&rx_buffer,BUFFER_SIZE,0,DMA_PRIORITY_HIGH,1,4,reciev_DmaIRQn);
+*/
 enum usartDMA
 {
     Usart0 = USART0,
@@ -125,6 +133,35 @@ void USART1_IRQHandler(void);
 void USART2_IRQHandler(void);
 void UART3_IRQHandler(void);
 void UART4_IRQHandler(void);
+/* ex
+void USART?_IRQHandler(void) // "?" = You number usart
+{
+    if (usart_interrupt_flag_get  (USART?, USART_INT_FLAG_IDLE)!= RESET) {
+        usart_interrupt_flag_clear(USART?, USART_INT_FLAG_IDLE);
+    }
+    if (usart_interrupt_flag_get  (USART?, USART_INT_FLAG_RBNE)!= RESET) {
+        usart_interrupt_flag_clear(USART?, USART_INT_FLAG_RBNE);
+    }
+    if (usart_interrupt_flag_get  (USART?, USART_INT_FLAG_TBE) != RESET) {
+        usart_interrupt_flag_clear(USART?, USART_INT_FLAG_TBE);
+    }
+    if (usart_interrupt_flag_get  (USART?, USART_INT_FLAG_TC)  != RESET) {
+        usart_interrupt_flag_clear(USART?, USART_INT_FLAG_TC);
+    }
+};
+void UART?_IRQHandler(void)/ / "?" = You number uart
+{
+    if (usart_interrupt_flag_get  (UART?, USART_INT_FLAG_RBNE) != RESET) {
+        usart_interrupt_flag_clear(UART?, USART_INT_FLAG_RBNE);
+    }
+    if (usart_interrupt_flag_get  (UART?, USART_INT_FLAG_TBE)  != RESET) {
+        usart_interrupt_flag_clear(UART?, USART_INT_FLAG_TBE);
+    }
+    if (usart_interrupt_flag_get  (UART?, USART_INT_FLAG_TC)   != RESET) {
+        usart_interrupt_flag_clear(UART?, USART_INT_FLAG_TC);
+    }
+};
+*/
 
 void DMA0_Channel3_IRQHandler(void);//USART0 TX
 void DMA0_Channel4_IRQHandler(void);//USART0 RX
@@ -132,11 +169,40 @@ void DMA0_Channel4_IRQHandler(void);//USART0 RX
 void DMA0_Channel6_IRQHandler(void);//USART1 TX
 void DMA0_Channel5_IRQHandler(void);//USART1 RX
 
-void DMA1_Channel3_4_IRQHandler(void);//UART3  TX 
-void DMA1_Channel2_IRQHandler(void);//UART3  RX
+void DMA1_Channel3_4_IRQHandler(void);//UART3 TX 
+void DMA1_Channel2_IRQHandler(void);  //UART3 RX
+/* ex
+void DMA-_Channel?_IRQHandler(void) // "?" = You number dma "^" = You dma channel
+{
+  if (dma_flag_get  (DMA?, DMA_CH^,DMA_FLAG_HTF)!= RESET) {
+      dma_flag_clear(DMA?, DMA_CH^,DMA_FLAG_HTF);
+    
+  }
+  if (dma_flag_get  (DMA?, DMA_CH^,DMA_FLAG_FTF)!= RESET) {
+      dma_flag_clear(DMA?, DMA_CH^,DMA_FLAG_FTF);
+    
+  }
+};
+*/
 #endif
 #ifdef GD32F450_
 #include "gd32f4xx.h"
+/* Example
+  //// ====================  USART? ====================  
+  gpio_mode_set           (USART?_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,  USART?_CK_PIN);
+  gpio_output_options_set (USART?_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,  USART?_CK_PIN);
+
+  gpio_af_set             (USART?_PORT, USART?_AF,                         USART?_TX_PIN);
+  gpio_mode_set           (USART?_PORT, GPIO_MODE_AF,   GPIO_PUPD_PULLUP,  USART?_TX_PIN);
+  gpio_output_options_set (USART?_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,  USART?_TX_PIN);
+  
+  gpio_af_set             (USART?_PORT, USART?_AF,                         USART?_RX_PIN);
+  gpio_mode_set           (USART?_PORT, GPIO_MODE_AF,     GPIO_PUPD_NONE,  USART?_RX_PIN); 
+  gpio_output_options_set (USART?_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,  USART?_RX_PIN);  
+  
+  ConfigUsart       (USART?,USART_BAUDRATE,USART_MSBF_MSB,USART_OVSMOD_8,non,0,5);
+  ConfigUsartDMA_Tx (USART?,buffer_tx,BUFFER_SIZE,0,DMA_PRIORITY_HIGH,0,6,iRQn_full_transmit_Dma);
+*/
 /*!
  \arg when using dma, you first call ConfigUsart, then ConfigDmaFromreceivUsart
 
@@ -223,7 +289,35 @@ void UART4_IRQHandler(void);
 void USART5_IRQHandler(void);
 void UART6_IRQHandler(void);
 void UART7_IRQHandler(void);
-
+/* ex
+void USART?_IRQHandler(void) // "?" = You number usart
+{
+    if (usart_interrupt_flag_get  (USART?, USART_INT_FLAG_IDLE)!= RESET) {
+        usart_interrupt_flag_clear(USART?, USART_INT_FLAG_IDLE);
+    }
+    if (usart_interrupt_flag_get  (USART?, USART_INT_FLAG_RBNE)!= RESET) {
+        usart_interrupt_flag_clear(USART?, USART_INT_FLAG_RBNE);
+    }
+    if (usart_interrupt_flag_get  (USART?, USART_INT_FLAG_TBE) != RESET) {
+        usart_interrupt_flag_clear(USART?, USART_INT_FLAG_TBE);
+    }
+    if (usart_interrupt_flag_get  (USART?, USART_INT_FLAG_TC)  != RESET) {
+        usart_interrupt_flag_clear(USART?, USART_INT_FLAG_TC);
+    }
+};
+void UART?_IRQHandler(void)/ / "?" = You number uart
+{
+    if (usart_interrupt_flag_get  (UART?, USART_INT_FLAG_RBNE) != RESET) {
+        usart_interrupt_flag_clear(UART?, USART_INT_FLAG_RBNE);
+    }
+    if (usart_interrupt_flag_get  (UART?, USART_INT_FLAG_TBE)  != RESET) {
+        usart_interrupt_flag_clear(UART?, USART_INT_FLAG_TBE);
+    }
+    if (usart_interrupt_flag_get  (UART?, USART_INT_FLAG_TC)   != RESET) {
+        usart_interrupt_flag_clear(UART?, USART_INT_FLAG_TC);
+    }
+};
+*/
 void DMA0_Channel0_IRQHandler(void);// rx uart4    tx uart7
 void DMA0_Channel1_IRQHandler(void);// rx usart2   tx uart6
 void DMA0_Channel2_IRQHandler(void);// rx uart3
@@ -237,7 +331,19 @@ void DMA1_Channel1_IRQHandler(void);// rx usart5
 void DMA1_Channel5_IRQHandler(void);// rx usart0
 void DMA1_Channel7_IRQHandler(void);//             tx usart0
 void DMA1_Channel6_IRQHandler(void);//             tx usart5
-
+/* ex
+void DMA-_Channel?_IRQHandler(void) // "?" = You number dma "^" = You dma channel
+{
+  if (dma_flag_get  (DMA?, DMA_CH^,DMA_FLAG_HTF)!= RESET) {
+      dma_flag_clear(DMA?, DMA_CH^,DMA_FLAG_HTF);
+    
+  }
+  if (dma_flag_get  (DMA?, DMA_CH^,DMA_FLAG_FTF)!= RESET) {
+      dma_flag_clear(DMA?, DMA_CH^,DMA_FLAG_FTF);
+    
+  }
+};
+*/
 #endif 
 
 #if  defined(GD32F303_) && defined(GD32F450_)

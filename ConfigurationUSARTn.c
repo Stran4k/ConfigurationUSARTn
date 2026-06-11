@@ -97,6 +97,7 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t confi
         default:
         {
             //#error Error parametr USART
+            while(1){}
             break;
         }
         }
@@ -156,6 +157,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     }
     default:
     {
+        while(1){}
         //#error there is no DMA on this USART
         break;
     }
@@ -216,6 +218,7 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
         default:
         {
             //#error there is no DMAn on this USART
+            while(1){}
             break;
         }
        }
@@ -280,6 +283,7 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     default:
     {
         //#error there is no DMA on this USART
+        while(1){}
         break;
     }
     }
@@ -332,6 +336,7 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
         default:
         {
             //#error there is no DMAn on this USART
+            while(1){}
             break;
         }
         }
@@ -358,6 +363,7 @@ void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
         default:
         {
             //#error there is no DMAn on this USART
+            while(1){}
             break;
         }
         }
@@ -541,6 +547,7 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint32_t over
     default:
     {
         //#error Error parametr USART confInterrupt
+      while(1){}
         break;
     }
     }
@@ -621,6 +628,7 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint32_t over
         default:
         {
             //#error Error parametr USART confInterrupt
+          while(1){}
             break;
         }
         }
@@ -718,6 +726,7 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     default:
     {
         //throw  "there is no DMAn on thiis USART";
+      while(1){}
         break;
     }
     }
@@ -796,7 +805,7 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
         }
         default:
         {
-
+          while(1){}
             break;
         }
         }
@@ -899,6 +908,7 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     default:
     {
         //throw  "there is no DMAn on thiis USART";
+      while(1){}
         break;
     }
     }
@@ -972,6 +982,7 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
         default:
         {
             //#error Error parametr USART confInterrupt
+          while(1){}
             break;
         }
         }
@@ -1023,7 +1034,7 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
         }
         default:
         {
-
+          while(1){}
             break;
         }
         }
