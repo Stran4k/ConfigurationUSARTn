@@ -1193,7 +1193,7 @@ void UART7_IRQHandler(void)
 void Usart_send_byte(const uint8_t byte, const uint32_t usart_perith)
 {
     // Send a byte data to USART0 
-    usart_data_transmit(usart_perith, (uint8_t)byte);
+    usart_data_transmit(usart_perith, byte);
 
     // Waiting for the sending 
     while (usart_flag_get(usart_perith, USART_FLAG_TBE) == RESET);
@@ -1204,7 +1204,7 @@ void Usart_send_buf(const void* buf, const uint32_t usart_perith, const uint32_t
     unsigned int k = 0;
     do
     {
-        Usart_send_byte(((uint8_t)buf + k++), usart_perith);
+        Usart_send_byte((*(uint8_t*)(buf + k++)), usart_perith);
     } while (k < len);
 }
 
@@ -1213,7 +1213,7 @@ void Usart_send_string(const void* str, const uint32_t usart_perith)
     unsigned int k = 0;
     do
     {
-        Usart_send_byte(((uint8_t)str + k), usart_perith);
+        Usart_send_byte((*(uint8_t*)(str + k)), usart_perith);
         k++;
     } while (((uint8_t)str + k) != '\0');
 }
