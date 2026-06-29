@@ -1201,21 +1201,19 @@ void Usart_send_byte(const   uint8_t  byte, const uint32_t usart_perith)
 
 void Usart_send_buf(const void* const buf, const uint32_t usart_perith, const uint32_t len)
 {
-    if (*buf == 0) {
+    if (buf == 0) {
         return;
     }
     const uint8_t* pbuf = (const uint8_t*)buf;
     unsigned int k = 0;
-    do
-    {
-        Usart_send_byte((pbuf[k]), usart_perith);
-        //        Usart_send_byte((*(uint8_t*)(buf + k++)), usart_perith);
-    } while (++k < len);
+    while (k < len) {
+        Usart_send_byte((pbuf[k++]), usart_perith);
+    }
 }
 
 void Usart_send_string(const void* const str, const uint32_t usart_perith)
 {
-    if (*str == 0) {
+    if (str == 0) {
         return;
     }
     const uint8_t* pbuf = (const uint8_t*)str;
