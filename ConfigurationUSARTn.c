@@ -1190,7 +1190,7 @@ void UART7_IRQHandler(void)
 
 #ifdef SENDING_VIA_USART
 
-void Usart_send_byte(const uint8_t byte, const uint32_t usart_perith)
+void Usart_send_byte(const   uint8_t  byte, const uint32_t usart_perith)
 {
     // Send a byte data to USART0 
     usart_data_transmit(usart_perith, byte);
@@ -1199,25 +1199,31 @@ void Usart_send_byte(const uint8_t byte, const uint32_t usart_perith)
     while (usart_flag_get(usart_perith, USART_FLAG_TBE) == RESET);
 }
 
-void Usart_send_buf(const void* buf, const uint32_t usart_perith, const uint32_t len)
+void Usart_send_buf(const void* const buf, const uint32_t usart_perith, const uint32_t len)
 {
+    if (*buf == 0) {
+        return;
+    }
+    const uint8_t* pbuf = (const uint8_t*)buf;
     unsigned int k = 0;
     do
     {
-        Usart_send_byte((*(uint8_t*)(buf + k++)), usart_perith);
-    } while (k < len);
+        Usart_send_byte((pbuf[k]), usart_perith);
+        //        Usart_send_byte((*(uint8_t*)(buf + k++)), usart_perith);
+    } while (++k < len);
 }
 
-void Usart_send_string(const void* str, const uint32_t usart_perith)
+void Usart_send_string(const void* const str, const uint32_t usart_perith)
 {
-    unsigned int k = 0;
-    do
-    {
-        Usart_send_byte((*(uint8_t*)(str + k)), usart_perith);
-        k++;
-    } while (((uint8_t)str + k) != '\0');
+    if (*str == 0) {
+        return;
+    }
+    const uint8_t* pbuf = (const uint8_t*)str;
+    uint32_t k = 0;
+    while (pbuf[k] != '\0') {
+        Usart_send_byte((pbuf[k++]), usart_perith);
+    }
 }
-
 
 #endif // SENDING_VIA_USART
 
