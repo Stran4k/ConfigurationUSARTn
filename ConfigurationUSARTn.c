@@ -1,7 +1,5 @@
 #include "ConfigurationUSARTn.h"
 #include <stdlib.h>
-#define ARRAYNUM(arr_nanme)      (uint32_t)(sizeof(arr_nanme) / sizeof(*(arr_nanme)))
-#define USARTn_DATA_ADDRESS(USARTn)    ((uint32_t)&USART_DATA(USARTn))
 
 
 
@@ -27,6 +25,8 @@
     \param[in]  sub_priority: using an interrupt
     \param[out] none
     \retval     none
+    
+    \example: ConfigUsart       (USART1,BAUDRATE_TU,USART_MSBF_LSB,non,1,4);
 */
 void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority)
 {
@@ -127,6 +127,8 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint8_t confi
       \arg       iRQn_full_transmit_Dma - transmition interruption thith dma full transfer
     \param[out] none
     \retval     none
+    
+    \example: ConfigUsartDMA_Tx (Usart1,tx_buffer,TX_BUFFER_SIZE,0,DMA_PRIORITY_HIGH,1,4,iRQn_full_transmit_Dma);
 */
 void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bool circulationEnable,
     uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, uint8_t iRQn)
@@ -167,10 +169,10 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
     // USART0 DMA receiving configuration
     dma_parameter_struct dma_init_struct;
     dma_deinit(dma_periph, channelTx);
-    dma_init_struct.direction = DMA_PERIPHERAL_TO_MEMORY;		// Peripheral to memory
-    dma_init_struct.memory_addr = buf;			                // Set the memory receiving base address
+    dma_init_struct.direction = DMA_MEMORY_TO_PERIPHERAL;		  // Memory to peripheral  
+    dma_init_struct.memory_addr = buf;			                  // Set the memory receiving base address
     dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing
-    dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;		// 8 -bit memory data
+    dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;		  // 8 -bit memory data
     dma_init_struct.number = lenBuf;
 
     dma_init_struct.periph_addr = USARTn_DATA_ADDRESS(usart);	// Peripheral address, USART data register address
@@ -252,9 +254,11 @@ void ConfigUsartDMA_Tx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bo
       \arg       iRQn_full_receiv_Dma - reception interruption thith dma full transfer
     \param[out] none
     \retval     none
+    
+    \example: ConfigUsartDMA_Rx (Usart1,&rx_buffer,RX_BUFFER_SIZE,0,DMA_PRIORITY_HIGH,1,4,iRQn_full_receiv_Dma);
 */
 void ConfigUsartDMA_Rx(enum usartDMA  usart, uint32_t* buf, uint32_t lenBuf, _Bool circulationEnable,
-    uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, uint_8t iRQn)
+    uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, uint8_t iRQn)
 {
        usart_disable       (usart);
     dma_channel_enum channelRx = 0;
@@ -493,7 +497,7 @@ void UART4_IRQHandler(void)
     \param[out] none
     \retval     none
 
-    \example: ConfigUsart(USART0,5000000,receive,0,4);
+    \example: ConfigUsart       (UART7, USART_BAUDRATE,USART_MSBF_LSB,USART_OVSMOD_8,receiveRBNE,0,5); 
 */
 
 void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint32_t oversample, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority)
@@ -654,6 +658,17 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint32_t over
       \arg       iRQn_full_transmit_Dma - transmition interruption thith dma full transfer
     \param[out] none
     \retval     none
+
+         dma_channel_disable                  (DMA0, DMA_CH3  );                                // Выключаем dma 
+         dma_flag_clear                       (DMA0, DMA_CH3, DMA_FLAG_FTF );
+         dma_channel_subperipheral_select     (DMA0, DMA_CH3, DMA_SUBPERI4 );
+         dma_transfer_direction_config        (DMA0, DMA_CH3, DMA_MEMORY_TO_PERIPH );
+         dma_memory_address_generation_config (DMA0, DMA_CH3, DMA_MEMORY_INCREASE_ENABLE );
+         dma_priority_config                  (DMA0, DMA_CH3, DMA_PRIORITY_ULTRA_HIGH );
+         dma_memory_address_config            (DMA0, DMA_CH3, DMA_MEMORY_0, (uint32_t)usartX_buffer_tx );  // Указываем адрес буфера
+         dma_periph_address_config            (DMA0, DMA_CH3, USARTn_DATA_ADDRESS(USART2) );
+         dma_transfer_number_config           (DMA0, DMA_CH3, USART_BUFFER_SIZE );               // Указываем количество данных
+         dma_channel_enable                   (DMA0, DMA_CH3  );                                // Включаем dma для передачи
 */
 void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circulationEnable,
     uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, uint8_t iRQn)
@@ -661,7 +676,7 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
        usart_disable       (usart);
     dma_channel_enum channelTx = 0;
     uint32_t dma_periph = 0;
-    uint32_t dma_sub_periph = 0;
+    dma_subperipheral_enum dma_sub_periph = 0;
     IRQn_Type  TX_irqn = 0;
 
     switch (usart)
@@ -731,34 +746,34 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
     }
     }
 
-
+    
     dma_single_data_parameter_struct dma_init_struct;
     /* USART0 DMA receiving configuration*/
-    dma_deinit(dma_periph, channelTx);
+    dma_channel_disable (dma_periph, channelTx);
+    dma_deinit          (dma_periph, channelTx);
 
-    dma_init_struct.direction = DMA_PERIPH_TO_MEMORY;		// Peripheral to memory */
-    dma_init_struct.memory0_addr = (uint32_t)buf;			// Set the memory receiving base address */
-    dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing */
-    dma_init_struct.number = lenBuf;
-    dma_init_struct.periph_addr = USARTn_DATA_ADDRESS(usart);
-    dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;
+    dma_init_struct.direction           = DMA_MEMORY_TO_PERIPH;		    // Memory to peripheral  
+    dma_init_struct.memory0_addr        = (uint32_t)buf;			        // Set the memory transmitting base address 
+    dma_init_struct.memory_inc          = DMA_MEMORY_INCREASE_ENABLE;	// Memory address increasing 
+    dma_init_struct.number              = lenBuf;                     // size of buffer
+    dma_init_struct.periph_addr         = USARTn_DATA_ADDRESS(usart); 
+    dma_init_struct.periph_inc          = DMA_PERIPH_INCREASE_DISABLE;
     dma_init_struct.periph_memory_width = DMA_PERIPH_WIDTH_8BIT;
-    dma_init_struct.priority = channelPriorityDMA;
-    if (circulationEnable) {
+    dma_init_struct.priority            = channelPriorityDMA;
+    if (circulationEnable){
         dma_init_struct.circular_mode = DMA_CIRCULAR_MODE_ENABLE;
-    }
-    else {
+    }else{
         dma_init_struct.circular_mode = DMA_CIRCULAR_MODE_DISABLE;
     }
-    dma_single_data_mode_init(dma_periph, channelTx, &dma_init_struct); 					// Initialize DMA */according to the configuration of the structure  
-    dma_channel_subperipheral_select(dma_periph, channelTx, dma_sub_periph);
+    dma_single_data_mode_init       (dma_periph, channelTx, &dma_init_struct); 					// Initialize DMA */according to the configuration of the structure  
+    dma_channel_subperipheral_select(dma_periph, channelTx,  dma_sub_periph);
     if (iRQn != iRQn_non_Tx) {
         if (iRQn & iRQn_full_transmit_Dma) {
-            dma_interrupt_enable(dma_periph, channelTx, DMA_INT_FTF);
+            dma_interrupt_enable    (dma_periph, channelTx, DMA_INT_FTF);
             dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_FTF);
         }
         if (iRQn & iRQn_half_transmit_Dma) {
-            dma_interrupt_enable(dma_periph, channelTx, DMA_INT_HTF);
+            dma_interrupt_enable    (dma_periph, channelTx, DMA_INT_HTF);
             dma_interrupt_flag_clear(dma_periph, channelTx, DMA_INT_HTF);
         }
         switch (usart)
@@ -843,7 +858,7 @@ void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
        usart_disable       (usart);
     dma_channel_enum channelRx= 0;
     uint32_t dma_periph       = 0;
-    uint32_t dma_sub_periph   = 0;
+    dma_subperipheral_enum dma_sub_periph   = 0;
     IRQn_Type RX_irqn         = 0;
 
     switch (usart)
@@ -1192,7 +1207,7 @@ void UART7_IRQHandler(void)
 
 void Usart_send_byte(const   uint8_t  byte, const uint32_t usart_perith)
 {
-    // Send a byte data to USART0 
+    // Send a byte data to USART
     usart_data_transmit(usart_perith, byte);
 
     // Waiting for the sending 
@@ -1206,8 +1221,8 @@ void Usart_send_buf(const void* const buf, const uint32_t usart_perith, const ui
     }
     const uint8_t* pbuf = (const uint8_t*)buf;
     unsigned int k = 0;
-    while (k < len) {
-        Usart_send_byte((pbuf[k++]), usart_perith);
+    while (k < len){
+      Usart_send_byte((pbuf[k++]), usart_perith);
     }
 }
 

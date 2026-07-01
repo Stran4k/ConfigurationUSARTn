@@ -11,17 +11,9 @@ create by Sikorsky VI
 #define GD32F450_
 
 #define SENDING_VIA_USART // functions of sending via USART without DMA
-/*
-#define USARTx_PORT         GPIOA
-#define USARTx_PIN_TX       GPIO_PIN_9
-#define USARTx_PIN_RX       GPIO_PIN_10
 
-#define USARTx_PORT_SWITCH	GPIOA
-#define USARTx_PIN_SWITCH   GPIO_PIN_11
-
-#define USARTx_RX           gpio_bit_reset( USARTx_PORT, USARTx_PIN_SWITCH )
-#define USARTx_TX           gpio_bit_set  ( USARTx_PORT, USARTx_PIN_SWITCH )
-*/
+#define ARRAYNUM(arr_nanme)      (uint32_t)(sizeof(arr_nanme) / sizeof(*(arr_nanme)))
+#define USARTn_DATA_ADDRESS(USARTn)    ((uint32_t)&USART_DATA(USARTn))
 
 enum confInterrupt
 {
@@ -47,13 +39,25 @@ enum confInterruptDMATransmit
 #ifdef GD32F303_
 #include "gd32f30x.h" 
 /* Example
+
+#define USARTx_PORT         GPIOA
+#define USARTx_PIN_TX       GPIO_PIN_9
+#define USARTx_PIN_RX       GPIO_PIN_10
+
+#define USARTx_PORT_SWITCH	GPIOA
+#define USARTx_PIN_SWITCH   GPIO_PIN_11
+
+#define USARTx_RX           gpio_bit_reset( USARTx_PORT, USARTx_PIN_SWITCH ) // from rs485
+#define USARTx_TX           gpio_bit_set  ( USARTx_PORT, USARTx_PIN_SWITCH ) // from rs485
+
   //// ====================  USART? ====================  
   gpio_init(USART?_CK_PORT, GPIO_MODE_OUT_PP,       GPIO_OSPEED_50MHZ,  USART?_CK_PIN);
   gpio_init(USART?_PORT,    GPIO_MODE_AF_PP,        GPIO_OSPEED_50MHZ,  USART?_TX_PIN);
   gpio_init(USART?_PORT,    GPIO_MODE_IN_FLOATING,  GPIO_OSPEED_50MHZ,  USART?_RX_PIN); 
   
-    ConfigUsart       (USART?,BAUDRATE,USART_MSBF_LSB,non,1,4);
-    ConfigUsartDMA_Rx (Usart?,&rx_buffer,BUFFER_SIZE,0,DMA_PRIORITY_HIGH,1,4,reciev_DmaIRQn);
+    ConfigUsart       (USART?,BAUDRATE,USART_MSBF_LSB,non,1,1);
+    ConfigUsartDMA_Tx (Usart?,&tx_buffer,TX_BUFFER_SIZE,0,DMA_PRIORITY_HIGH,0,4,iRQn_full_transmit_Dma);
+    ConfigUsartDMA_Rx (Usart?,&rx_buffer,RX_BUFFER_SIZE,0,DMA_PRIORITY_HIGH,0,3,iRQn_full_receiv_Dma);
 */
 enum usartDMA
 {
@@ -200,6 +204,13 @@ void DMA-_Channel?_IRQHandler(void) // "?" = You number dma "^" = You dma channe
 #ifdef GD32F450_
 #include "gd32f4xx.h"
 /* Example
+// ==================== USART7 ====================
+#define UART7_PORT                     GPIOE
+#define UART7_TX_PIN                   GPIO_PIN_1
+#define UART7_RX_PIN                   GPIO_PIN_0
+#define UART7_CK_PIN                   GPIO_PIN_2
+#define UART7_AF                       GPIO_AF_8
+
   //// ====================  USART? ====================  
   gpio_mode_set           (USART?_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,  USART?_CK_PIN);
   gpio_output_options_set (USART?_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,  USART?_CK_PIN);
@@ -246,7 +257,7 @@ void DMA-_Channel?_IRQHandler(void) // "?" = You number dma "^" = You dma channe
     \param[out] none
     \retval     none
 
-    \example: ConfigUsart(USART0,5000000,receive,0,4);
+    \example: ConfigUsart       (UART7, USART_BAUDRATE,USART_MSBF_LSB,USART_OVSMOD_8,receiveRBNE,0,5); 
 */
 void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint32_t oversample, uint8_t configIrqn, uint8_t priority, uint8_t sub_priority);
 /*!
@@ -267,6 +278,8 @@ void ConfigUsart(uint32_t usart, uint32_t baudrate, uint32_t msbf, uint32_t over
       \arg       iRQn_full_transmit_Dma - transmition interruption thith dma full transfer
     \param[out] none
     \retval     none
+
+    \example:     ConfigUsartDMA_Tx (UART7, usartX_buffer_tx,USART_BUFFER_SIZE,0,DMA_PRIORITY_HIGH,0,6,iRQn_full_transmit_Dma);
 */
 void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circulationEnable,
     uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, uint8_t iRQn);
@@ -289,6 +302,8 @@ void ConfigUsartDMA_Tx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circ
       \arg       iRQn_full_receiv_Dma - reception interruption thith dma full transfer
     \param[out] none
     \retval     none
+
+    \example:     ConfigUsartDMA_Rx (UART7, buffer_Rx,USART_BUFFER_SIZE,0,DMA_PRIORITY_HIGH,0,6,iRQn_full_transmit_Dma);
 */
 void ConfigUsartDMA_Rx(uint32_t usart, uint8_t* buf, uint32_t lenBuf, _Bool circulationEnable,
     uint32_t channelPriorityDMA, uint8_t priority, uint8_t sub_priority, uint8_t iRQn);
@@ -330,19 +345,20 @@ void UART?_IRQHandler(void)/ / "?" = You number uart
     }
 };
 */
-void DMA0_Channel0_IRQHandler(void);// rx uart4    tx uart7
-void DMA0_Channel1_IRQHandler(void);// rx usart2   tx uart6
-void DMA0_Channel2_IRQHandler(void);// rx uart3
-void DMA0_Channel3_IRQHandler(void);// rx uart6    tx usart2
-void DMA0_Channel5_IRQHandler(void);// rx usart1
-void DMA0_Channel6_IRQHandler(void);// rx uart7    tx usart1
-void DMA0_Channel7_IRQHandler(void);//             tx uart4
-void DMA0_Channel4_IRQHandler(void);//             tx uart3
 
-void DMA1_Channel1_IRQHandler(void);// rx usart5
-void DMA1_Channel5_IRQHandler(void);// rx usart0
-void DMA1_Channel7_IRQHandler(void);//             tx usart0
-void DMA1_Channel6_IRQHandler(void);//             tx usart5
+//void DMA0_Channel0_IRQHandler(void);// rx uart4    tx uart7
+//void DMA0_Channel1_IRQHandler(void);// rx usart2   tx uart6
+//void DMA0_Channel2_IRQHandler(void);// rx uart3
+//void DMA0_Channel3_IRQHandler(void);// rx uart6    tx usart2
+//void DMA0_Channel5_IRQHandler(void);// rx usart1
+//void DMA0_Channel6_IRQHandler(void);// rx uart7    tx usart1
+//void DMA0_Channel7_IRQHandler(void);//             tx uart4
+//void DMA0_Channel4_IRQHandler(void);//             tx uart3
+
+//void DMA1_Channel1_IRQHandler(void);// rx usart5
+//void DMA1_Channel5_IRQHandler(void);// rx usart0
+//void DMA1_Channel7_IRQHandler(void);//             tx usart0
+//void DMA1_Channel6_IRQHandler(void);//             tx usart5
 /* ex
 
 void DMA-_Channel?_IRQHandler(void) // "?" = You number dma "^" = You dma channel
@@ -384,6 +400,6 @@ void DMA-_Channel?_IRQHandler(void) // "?" = You number dma "^" = You dma channe
 
 #ifdef SENDING_VIA_USART
 void Usart_send_byte  (const uint8_t byte, const uint32_t usart_perith);
-void Usart_send_buf   (const void* buf,    const uint32_t usart_perith, const uint32_t len);
-void Usart_send_string(const void* str,    const uint32_t usart_perith);
+void Usart_send_buf   (const void* const buf,    const uint32_t usart_perith, const uint32_t len);
+void Usart_send_string(const void* const str,    const uint32_t usart_perith);
 #endif
